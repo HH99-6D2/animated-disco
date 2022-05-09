@@ -5,6 +5,8 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
 import axios from 'axios';
 import { stringify } from 'qs';
+import { KakaoToken } from './interfaces/social-token.interface';
+import { kakaoSocialData } from './interfaces/social-data.interface';
 
 @Injectable()
 export class AuthService {
@@ -39,8 +41,20 @@ export class AuthService {
     return auth;
   }
 
-  async requestUserInfo(code: string) {
-    const token = await axios({
+  async getSocialInfo(token: KakaoToken): Promise<kakaoSocialData> {
+    //scope: 'account_email profile_image profile_nickname';
+    const { data } = await axios({
+      method: 'POST',
+      url: 'https://kapi.kakao.com/v2/user/me',
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+      },
+    });
+    return data;
+  }
+
+  async getSocialToken(code: string): Promise<KakaoToken> {
+    const { data } = await axios({
       method: 'POST',
       url: 'https://kauth.kakao.com/oauth/token',
       headers: {
@@ -54,16 +68,6 @@ export class AuthService {
         code: code,
       }),
     });
-    const { data } = await axios({
-      method: 'POST',
-      url: 'https://kapi.kakao.com/v2/user/me',
-      headers: {
-        Authorization: `Bearer ${token.data.access_token}`,
-      },
-    });
     return data;
-  }
-  async createToken(loginUser) {
-    return 'TOKEN';
   }
 }

@@ -10,7 +10,6 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
 import { kakaoSocialData } from './interfaces/social-data.interface';
 
 @ApiTags('auth')
@@ -33,10 +32,17 @@ export class AuthController {
   @Get('oauth')
   async oauth(@Query('code') code: string, @Query('error') error: string) {
     if (error) return HttpCode(500);
-    //    const now = Date.now();
-    const userData: kakaoSocialData = await this.authService.requestUserInfo(
-      code,
+    const now = Date.now();
+    const authToken = await this.authService.getSocialToken(code);
+    const userData = await this.authService.getSocialInfo(authToken);
+    const connected_Date = Date.parse(
+      userData.connected_at.replace('T', 'Z').slice(0, 19),
     );
+    if (connected_Date > now) {
+      console.log('NEW AUTH');
+    } else {
+      console.log('ALREADY AUTH');
+    }
     /*    const authUser =
       userData.connected_at.getDate() < now
         ? await this.authService.findOne(+userData.id, 'kakao')
