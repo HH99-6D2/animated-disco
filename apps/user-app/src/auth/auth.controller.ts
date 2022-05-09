@@ -8,8 +8,12 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { createDecipheriv } from 'crypto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { Auth } from './entities/auth.entity';
 import { kakaoSocialData } from './interfaces/social-data.interface';
 
 @ApiTags('auth')
@@ -32,25 +36,23 @@ export class AuthController {
   @Get('oauth')
   async oauth(@Query('code') code: string, @Query('error') error: string) {
     if (error) return HttpCode(500);
-    const now = Date.now();
+
     const authToken = await this.authService.getSocialToken(code);
     const userData = await this.authService.getSocialInfo(authToken);
-    const connected_Date = Date.parse(
-      userData.connected_at.replace('T', 'Z').slice(0, 19),
-    );
-    if (connected_Date > now) {
-      console.log('NEW AUTH');
-    } else {
-      console.log('ALREADY AUTH');
-    }
-    /*    const authUser =
-      userData.connected_at.getDate() < now
-        ? await this.authService.findOne(+userData.id, 'kakao')
-        : await this.authService.create(new CreateAuthDto());
-    const user = await this.userService.findOne(+authUser.id);
-    return await this.authService.createToken(user);
-    */
-    return JSON.stringify(userData);
+    let socialProfile = await this.authService.findOne(userData.id, 1);
+    if (!socialProfile) {
+      const createAuthDTO = new CreateAuthDto();
+      createAuthDTO.provider = 1;
+      createAuthDTO.socialId = userData.id;
+      createAuthDTO.email = userData.kakao_account.email || null;
+      socialProfile = await this.authService.create(createAuthDTO);
+      const createUserDTO = new CreateUserDto();
+      createUserDTO.id = socialProfile.id;
+      createUserDTO.nickname = userData.properties.nickname || null;
+      createUserDTO.imageUrl = userData.properties.profile_image || null;
+      return await this.userService.create(createUserDTO);
+    } else return await this.userService.findOne(socialProfile.id);
+    //return await this.authService.createToken(user);
   }
 
   @Post('logout')

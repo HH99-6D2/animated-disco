@@ -18,7 +18,7 @@ import { Auth } from './auth/entities/auth.entity';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       entities: [User, Auth],
-      synchronize: true,
+      synchronize: false,
       migrations: ['dist/apps/user-app/src/db/migrations/*.js'],
       cli: {
         migrationsDir: 'apps/user-app/src/db/migrations',

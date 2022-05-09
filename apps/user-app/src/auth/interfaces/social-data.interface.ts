@@ -23,7 +23,7 @@ interface kako_account {
 }
 
 export interface kakaoSocialData {
-  id: number;
+  id: string;
   connected_at: string;
   properties: Kakao_properties;
   kakao_account: kako_account;

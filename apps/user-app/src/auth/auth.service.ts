@@ -15,28 +15,14 @@ export class AuthService {
   ) {}
 
   async create(createAuthDto: CreateAuthDto) {
-    let auth;
-    const provider = createAuthDto.provider == 'kakao' ? 1 : 0;
-    try {
-      auth = await this.authRepository.findOne({
-        socialId: createAuthDto.socialId,
-        provider: provider,
-      });
-    } catch (err) {
-      auth = await this.authRepository.create({
-        socialId: createAuthDto.socialId,
-        provider: provider,
-        email: createAuthDto.email || null,
-      });
-    } finally {
-      return auth;
-    }
+    const auth = this.authRepository.create(createAuthDto);
+    return await this.authRepository.save(auth);
   }
 
-  async findOne(socialId: number, provider: string) {
-    const auth = await this.authRepository.findOneOrFail({
-      socialId: socialId,
-      provider: provider === 'kakao' ? 1 : 2,
+  async findOne(socialId: string, provider: number): Promise<Auth> {
+    const auth = await this.authRepository.findOne({
+      socialId,
+      provider,
     });
     return auth;
   }
