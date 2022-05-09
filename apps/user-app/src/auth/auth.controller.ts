@@ -1,20 +1,9 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Query,
-  HttpCode,
-  Redirect,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Post, Query, HttpCode, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { createDecipheriv } from 'crypto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { Auth } from './entities/auth.entity';
-import { kakaoSocialData } from './interfaces/social-data.interface';
 
 @ApiTags('auth')
 @Controller('auth')
