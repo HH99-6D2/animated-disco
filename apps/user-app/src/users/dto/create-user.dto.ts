@@ -11,6 +11,8 @@ export class CreateUserDto {
 
   @ApiProperty({
     description: 'NickName of user which is temporary.',
+    minimum: 2,
+    maximum: 20,
   })
   @IsString()
   @MinLength(2)
