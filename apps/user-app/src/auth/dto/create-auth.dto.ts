@@ -6,19 +6,15 @@ import { Column, Entity } from 'typeorm';
 export class CreateAuthDto {
   @ApiProperty({
     description: 'Provider of social account',
-    minLength: 2,
-    maxLength: 10,
     nullable: false,
   })
-  provider: string;
+  provider: number;
 
   @ApiProperty({
     description: 'socialId of user which is imported from social information.',
-    minimum: 2,
-    maximum: 16,
     nullable: false,
   })
-  socialId: number;
+  socialId: string;
 
   @ApiProperty({
     description: 'email of user which is imported from social information.',

@@ -5,6 +5,8 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
 import axios from 'axios';
 import { stringify } from 'qs';
+import { KakaoToken } from './interfaces/social-token.interface';
+import { kakaoSocialData } from './interfaces/social-data.interface';
 
 @Injectable()
 export class AuthService {
@@ -13,34 +15,32 @@ export class AuthService {
   ) {}
 
   async create(createAuthDto: CreateAuthDto) {
-    let auth;
-    const provider = createAuthDto.provider == 'kakao' ? 1 : 0;
-    try {
-      auth = await this.authRepository.findOne({
-        socialId: createAuthDto.socialId,
-        provider: provider,
-      });
-    } catch (err) {
-      auth = await this.authRepository.create({
-        socialId: createAuthDto.socialId,
-        provider: provider,
-        email: createAuthDto.email || null,
-      });
-    } finally {
-      return auth;
-    }
+    const auth = this.authRepository.create(createAuthDto);
+    return await this.authRepository.save(auth);
   }
 
-  async findOne(socialId: number, provider: string) {
-    const auth = await this.authRepository.findOneOrFail({
-      socialId: socialId,
-      provider: provider === 'kakao' ? 1 : 2,
+  async findOne(socialId: string, provider: number): Promise<Auth> {
+    const auth = await this.authRepository.findOne({
+      socialId,
+      provider,
     });
     return auth;
   }
 
-  async requestUserInfo(code: string) {
-    const token = await axios({
+  async getSocialInfo(token: KakaoToken): Promise<kakaoSocialData> {
+    //scope: 'account_email profile_image profile_nickname';
+    const { data } = await axios({
+      method: 'POST',
+      url: 'https://kapi.kakao.com/v2/user/me',
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+      },
+    });
+    return data;
+  }
+
+  async getSocialToken(code: string): Promise<KakaoToken> {
+    const { data } = await axios({
       method: 'POST',
       url: 'https://kauth.kakao.com/oauth/token',
       headers: {
@@ -54,16 +54,6 @@ export class AuthService {
         code: code,
       }),
     });
-    const { data } = await axios({
-      method: 'POST',
-      url: 'https://kapi.kakao.com/v2/user/me',
-      headers: {
-        Authorization: `Bearer ${token.data.access_token}`,
-      },
-    });
     return data;
-  }
-  async createToken(loginUser) {
-    return 'TOKEN';
   }
 }
