@@ -14,7 +14,8 @@ export class UpdateUserDto {
   nickname?: string;
 
   @ApiProperty({
-    description: 'ImageUrl of user profile which can be updated by upload file',
+    description:
+      'ImageUrl of user profile which can be updated by upload file or Link to image',
     maximum: 128,
     nullable: true,
   })
