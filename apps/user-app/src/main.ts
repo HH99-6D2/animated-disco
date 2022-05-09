@@ -16,7 +16,7 @@ async function bootstrap() {
     .setTitle('User app for animated disco')
     .setDescription('User API Document for Animated Disco')
     .setVersion('1.0')
-    .addTag('user')
+    .addTag('UserAuth API')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

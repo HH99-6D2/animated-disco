@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserAppController } from './app.controller';
-import { UserAppService } from './app.service';
+//import { UserAppController } from './app.controller';
+//import { UserAppService } from './app.service';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
@@ -24,7 +24,11 @@ import { UsersModule } from './users/users.module';
     }),
     UsersModule,
   ],
-  controllers: [UserAppController],
-  providers: [UserAppService],
+  controllers: [
+    //   UserAppController
+  ],
+  providers: [
+    //   UserAppService
+  ],
 })
 export class UserAppModule {}
