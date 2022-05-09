@@ -33,16 +33,18 @@ export class AuthController {
   @Get('oauth')
   async oauth(@Query('code') code: string, @Query('error') error: string) {
     if (error) return HttpCode(500);
-    const now = Date.now();
+    //    const now = Date.now();
     const userData: kakaoSocialData = await this.authService.requestUserInfo(
       code,
     );
-    const authUser =
+    /*    const authUser =
       userData.connected_at.getDate() < now
         ? await this.authService.findOne(+userData.id, 'kakao')
         : await this.authService.create(new CreateAuthDto());
     const user = await this.userService.findOne(+authUser.id);
     return await this.authService.createToken(user);
+    */
+    return JSON.stringify(userData);
   }
 
   @Post('logout')

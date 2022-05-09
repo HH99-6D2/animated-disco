@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
 import axios from 'axios';
+import { stringify } from 'qs';
 
 @Injectable()
 export class AuthService {
@@ -45,17 +46,17 @@ export class AuthService {
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
       },
-      data: JSON.stringify({
+      data: stringify({
         grant_type: 'authorization_code',
         client_id: process.env.CLIENT_ID,
         client_secret: process.env.CLIENT_SECRET,
-        redirectUri: process.env.redirectUri,
+        redirectUri: process.env.REDIRECT_URL,
         code: code,
       }),
     });
     const { data } = await axios({
       method: 'POST',
-      url: 'https://kauth.kakao.com/v2/user/me',
+      url: 'https://kapi.kakao.com/v2/user/me',
       headers: {
         Authorization: `Bearer ${token.data.access_token}`,
       },
