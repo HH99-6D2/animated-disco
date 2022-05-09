@@ -4,8 +4,10 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 export class User {
   @PrimaryColumn({ nullable: false })
   id: number;
-  @Column({ type: 'varchar', length: 20 })
+  @Column({ type: 'varchar', length: 16, nullable: false })
   nickname: string;
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  imageUrl: string;
+  @Column({ type: 'boolean', default: true, nullable: false })
   isActive: boolean;
 }
