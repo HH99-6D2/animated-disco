@@ -9,9 +9,6 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
 import axios from 'axios';
 import { stringify } from 'qs';
-import { IKakaoTokenData } from './interfaces/social-token-data.interface';
-import { IkakaoSocialData } from './interfaces/social-data.interface';
-import { IAuthCreateData } from './interfaces/auth-data.interface';
 import { UsersService } from '../users/users.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import * as jwt from 'jsonwebtoken';
@@ -24,48 +21,48 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  async create(authCreateData: IAuthCreateData) {
+  async create(provider: number, socialId: string): Promise<Auth> {
     const createAuthDTO = new CreateAuthDto();
-    createAuthDTO.provider = authCreateData.provider || 1;
-    createAuthDTO.socialId = authCreateData.socialId;
-    createAuthDTO.email = authCreateData.email || null;
+    createAuthDTO.provider = provider;
+    createAuthDTO.socialId = socialId;
     const auth = this.authRepository.create(createAuthDTO);
-    return await this.authRepository.save(auth);
+    return this.authRepository.save(auth);
   }
 
-  async findOne(authfindData: IAuthCreateData): Promise<Auth> {
-    const auth = await this.authRepository.findOne({
-      socialId: authfindData.socialId,
-      provider: authfindData.provider,
+  async findOne(provider: number, socialId: string): Promise<Auth> {
+    return this.authRepository.findOneOrFail({
+      socialId,
+      provider,
     });
-    return auth;
+  }
+  async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
+    return this.authRepository
+      .findOne({ provider, socialId })
+      .then((auth) => (auth ? auth : this.create(provider, socialId)));
   }
 
-  async getSocialInfo(token: IKakaoTokenData): Promise<IkakaoSocialData> {
-    const { data } = await axios({
+  async getSocialInfo(accessToken: string): Promise<unknown> {
+    return axios({
       method: 'POST',
       url: 'https://kapi.kakao.com/v2/user/me',
       headers: {
-        Authorization: `Bearer ${token.access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
-    return data;
   }
-  async getTokenInfo(accessToken: string): Promise<any> {
-    console.log('accTOKEN', accessToken);
-    const data = await axios({
+
+  async getTokenInfo(accessToken: string): Promise<unknown> {
+    return axios({
       method: 'GET',
       url: 'https://kapi.kakao.com/v1/user/access_token_info',
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    console.log(data);
-    return data;
   }
 
-  async getSocialToken(code: string): Promise<any> {
-    const { data } = await axios({
+  async getSocialToken(code: string) {
+    return axios({
       method: 'POST',
       url: 'https://kauth.kakao.com/oauth/token',
       headers: {
@@ -79,15 +76,14 @@ export class AuthService {
         code: code,
       }),
     });
-    return data;
   }
 
   async validateUser(loginAuthDto: LoginAuthDto): Promise<any> {
     const { accessToken, id } = loginAuthDto;
-    const { data } = await this.getTokenInfo(accessToken);
+    const data = await this.getTokenInfo(accessToken);
     const user = await this.usersService.findOne(id);
     const socialProfile = await this.authRepository.findOne(id);
-    if (socialProfile.socialId !== `${data.id}` || !user)
+    if (socialProfile.socialId !== `${data['id']}` || !user)
       throw new BadRequestException();
     if (!user.isActive) throw new ForbiddenException();
     return user;

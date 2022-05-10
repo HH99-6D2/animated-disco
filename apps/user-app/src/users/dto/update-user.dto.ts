@@ -1,25 +1,34 @@
-import { IsString, IsUrl, MaxLength, MinLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
   @ApiProperty({
     description: 'NickName of user which can be temporarily updated.',
-    minimum: 2,
-    maximum: 16,
+    minLength: 2,
+    maxLength: 16,
     nullable: false,
   })
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(16)
-  nickname?: string;
+  nickname: string;
 
   @ApiProperty({
     description:
       'ImageUrl of user profile which can be updated by upload file or Link to image',
-    maximum: 128,
+    minLength: 10,
+    maxLength: 128,
     nullable: true,
   })
+  @IsOptional()
   @IsUrl()
   @MaxLength(128)
-  imageUrl?: string;
+  imageUrl: string;
 }

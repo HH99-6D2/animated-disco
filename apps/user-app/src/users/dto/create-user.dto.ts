@@ -1,5 +1,6 @@
 import {
   IsNumber,
+  IsOptional,
   IsString,
   IsUrl,
   MaxLength,
@@ -9,20 +10,12 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
   @ApiProperty({
-    description:
-      'An id from SocialProfile of a user which is already generated before create user.',
-    nullable: false,
-    readOnly: true,
-  })
-  @IsNumber()
-  id: number;
-
-  @ApiProperty({
     description: 'NickName of user which is imported from social information.',
-    minimum: 2,
-    maximum: 16,
+    minLength: 2,
+    maxLength: 16,
     nullable: false,
   })
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(16)
@@ -31,10 +24,22 @@ export class CreateUserDto {
   @ApiProperty({
     description:
       'ImageUrl of user profile which is imported from social information.',
-    maximum: 128,
+    minLength: 10,
+    maxLength: 128,
     nullable: true,
   })
+  @IsOptional()
   @IsUrl()
   @MaxLength(128)
-  imageUrl?: string;
+  imageUrl: string;
+
+  @ApiProperty({
+    description:
+      'An id from SocialProfile of a user which is already generated before create user.',
+    nullable: false,
+    uniqueItems: true,
+    required: true,
+  })
+  @IsNumber()
+  id: number;
 }
