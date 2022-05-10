@@ -36,6 +36,7 @@ export class AuthService {
     });
   }
   async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
+    console.log(provider, socialId);
     return this.authRepository
       .findOne({ provider, socialId })
       .then((auth) => (auth ? auth : this.create(provider, socialId)));
@@ -80,10 +81,10 @@ export class AuthService {
 
   async validateUser(loginAuthDto: LoginAuthDto): Promise<any> {
     const { accessToken, id } = loginAuthDto;
-    const data = await this.getTokenInfo(accessToken);
+    const token = await this.getTokenInfo(accessToken);
     const user = await this.usersService.findOne(id);
     const socialProfile = await this.authRepository.findOne(id);
-    if (socialProfile.socialId !== `${data['id']}` || !user)
+    if (socialProfile.socialId !== `${token['data']['id']}`)
       throw new BadRequestException();
     if (!user.isActive) throw new ForbiddenException();
     return user;

@@ -2,11 +2,11 @@ import {
   Controller,
   Get,
   Query,
-  HttpCode,
   Response,
   NotAcceptableException,
   Post,
   Body,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
@@ -22,14 +22,14 @@ export class AuthController {
   ) {}
 
   @Get('login')
-  socialLogin(@Response() response, @Query('provider') provider: string) {
+  async socialLogin(@Response() response, @Query('provider') provider: string) {
     if (provider === 'kakao')
       return response
         .status(302)
         .redirect(
           `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URL}&response_type=code&scope=profile_nickname,account_email,profile_image`,
         );
-    else throw new NotAcceptableException();
+    else throw new NotAcceptableException('social provider kakao only');
   }
 
   @Post('login')
@@ -45,7 +45,7 @@ export class AuthController {
     @Query('code') code: string,
     @Query('error') error: string,
   ) {
-    if (error) return HttpCode(500);
+    if (error) throw new UnauthorizedException('Kakao login rejected');
 
     const token = await this.authService.getSocialToken(code);
     const socialInfo = await this.authService.getSocialInfo(
@@ -53,7 +53,7 @@ export class AuthController {
     );
     const authUser = await this.authService.findOneOrCreate(
       1,
-      socialInfo['id'],
+      socialInfo['data']['id'],
     );
     const user = await this.userService.findOneOrCreate(authUser.id);
     return response.json({
