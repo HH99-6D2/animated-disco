@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail } from 'class-validator';
-import { Column, Entity } from 'typeorm';
 
-@Entity({ name: 'socialprofile' })
 export class CreateAuthDto {
   @ApiProperty({
     description: 'Provider of social account',
