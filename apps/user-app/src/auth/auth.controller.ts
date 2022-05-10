@@ -4,7 +4,6 @@ import {
   Query,
   HttpCode,
   Response,
-  Request,
   NotAcceptableException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -34,7 +33,7 @@ export class AuthController {
 
   @Get('oauth')
   async oauth(
-    @Request() req,
+    @Response() response,
     @Query('code') code: string,
     @Query('error') error: string,
   ) {
@@ -61,11 +60,9 @@ export class AuthController {
       userData.id = socialProfile.id;
       await this.userService.create(userData);
     }
-    req.headers.Authorization = `Bearer ${authToken.access_token}`;
-    return userData;
-    /*
-    } else await this.userService.findOne(socialProfile.id);
-    //return await this.authService.createToken(user);
-    */
+
+    return response
+      .set({ Authorization: `Bearer ${authToken.access_token}` })
+      .json(userData);
   }
 }
