@@ -1,3 +1,4 @@
+import { Tag } from '../../tags/entities/tag.entity';
 import {
   Entity,
   BaseEntity,
@@ -5,6 +6,9 @@ import {
   Column,
   Long,
   CreateDateColumn,
+  ManyToMany,
+  JoinTable,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -27,7 +31,7 @@ export class Room extends BaseEntity {
   @CreateDateColumn()
   createdDate: Date;
 
-  @Column({ nullable: true })
+  @UpdateDateColumn()
   updatedDate: Date;
 
   @Column()
@@ -53,4 +57,9 @@ export class Room extends BaseEntity {
 
   @Column({ type: 'tinyint', default: 0 }) // 0: 대기, 1: 활성, 2: 종료
   status: number;
+
+  // @ManyToMany(() => Tag, (tags) => tags.id)
+  @ManyToMany(() => Tag)
+  @JoinTable()
+  tags: Tag[];
 }

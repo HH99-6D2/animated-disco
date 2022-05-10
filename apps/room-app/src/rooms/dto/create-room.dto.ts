@@ -3,7 +3,6 @@ import { Long } from 'typeorm';
 import { Tag } from '../../tags/entities/tag.entity';
 
 export class CreateRoomDto {
-
   @IsNotEmpty()
   title: string;
 
@@ -35,5 +34,5 @@ export class CreateRoomDto {
   regionBId: number;
 
   @IsNotEmpty()
-  tags: Tag[];
+  tags: String[];
 }
