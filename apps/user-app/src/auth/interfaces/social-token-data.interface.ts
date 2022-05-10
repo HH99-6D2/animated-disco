@@ -1,4 +1,4 @@
-export interface KakaoToken {
+export interface IKakaoTokenData {
   access_token: string;
   token_type: string;
   refresh_token: string;

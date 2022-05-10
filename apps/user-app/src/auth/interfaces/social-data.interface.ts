@@ -1,30 +1,32 @@
-interface Kakao_properties {
+type ifString = string | null;
+
+interface IKakaoPropertiesData {
   nickname: string;
-  profile_image?: string;
-  thumbnail_image?: string;
+  profile_image: ifString;
+  thumbnail_image: ifString;
 }
 
-interface Kakao_profile {
+interface IKakaoProfileData {
   nickname: string;
-  thumbnail_image_url?: string;
-  profile_image_url?: string;
-  is_default_image?: boolean;
+  thumbnail_image: ifString;
+  profile_image: ifString;
+  is_default_image: boolean;
 }
 
-interface kako_account {
+interface IkakaoAccountData {
   profile_nickname_needs_agreement: boolean;
   profile_image_needs_agreement?: boolean;
-  profile: Kakao_profile;
-  has_email?: boolean;
+  profile: IKakaoProfileData;
+  has_email: boolean;
   email_needs_agreement: boolean;
-  is_email_valid?: boolean;
-  is_email_verified?: boolean;
-  email?: string;
+  is_email_valid: boolean;
+  is_email_verified: boolean;
+  email: ifString;
 }
 
-export interface kakaoSocialData {
+export interface IkakaoSocialData {
   id: string;
   connected_at: string;
-  properties: Kakao_properties;
-  kakao_account: kako_account;
+  properties: IKakaoProfileData;
+  kakao_account: IkakaoAccountData;
 }

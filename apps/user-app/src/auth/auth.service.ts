@@ -5,8 +5,9 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
 import axios from 'axios';
 import { stringify } from 'qs';
-import { KakaoToken } from './interfaces/social-token.interface';
-import { kakaoSocialData } from './interfaces/social-data.interface';
+import { IKakaoTokenData } from './interfaces/social-token-data.interface';
+import { IkakaoSocialData } from './interfaces/social-data.interface';
+import { IAuthCreateData } from './interfaces/auth-data.interface';
 
 @Injectable()
 export class AuthService {
@@ -14,20 +15,24 @@ export class AuthService {
     @InjectRepository(Auth) private authRepository: Repository<Auth>,
   ) {}
 
-  async create(createAuthDto: CreateAuthDto) {
-    const auth = this.authRepository.create(createAuthDto);
+  async create(authCreateData: IAuthCreateData) {
+    const createAuthDTO = new CreateAuthDto();
+    createAuthDTO.provider = authCreateData.provider || 1;
+    createAuthDTO.socialId = authCreateData.socialId;
+    createAuthDTO.email = authCreateData.email || null;
+    const auth = this.authRepository.create(createAuthDTO);
     return await this.authRepository.save(auth);
   }
 
-  async findOne(socialId: string, provider: number): Promise<Auth> {
+  async findOne(authfindData: IAuthCreateData): Promise<Auth> {
     const auth = await this.authRepository.findOne({
-      socialId,
-      provider,
+      socialId: authfindData.socialId,
+      provider: authfindData.provider,
     });
     return auth;
   }
 
-  async getSocialInfo(token: KakaoToken): Promise<kakaoSocialData> {
+  async getSocialInfo(token: IKakaoTokenData): Promise<IkakaoSocialData> {
     //scope: 'account_email profile_image profile_nickname';
     const { data } = await axios({
       method: 'POST',
@@ -38,8 +43,18 @@ export class AuthService {
     });
     return data;
   }
+  async getTokenInfo(token: IKakaoTokenData): Promise<any> {
+    const data = await axios({
+      method: 'GET',
+      url: 'https://kapi.kakao.com/v1/access_token_info',
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+      },
+    });
+    return data;
+  }
 
-  async getSocialToken(code: string): Promise<KakaoToken> {
+  async getSocialToken(code: string): Promise<IKakaoTokenData> {
     const { data } = await axios({
       method: 'POST',
       url: 'https://kauth.kakao.com/oauth/token',
