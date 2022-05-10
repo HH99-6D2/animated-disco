@@ -20,11 +20,11 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<User> {
     return await this.userRepository.findOneOrFail(id);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    return await this.userRepository.update(id, updateUserDto);
   }
 }

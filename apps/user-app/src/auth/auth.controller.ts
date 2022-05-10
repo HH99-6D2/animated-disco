@@ -5,22 +5,25 @@ import {
   HttpCode,
   Response,
   NotAcceptableException,
+  Post,
+  Body,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { IUserCreateData } from '../users/interfaces/create-user.interface';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { LoginAuthDto } from './dto/login-auth.dto';
 import { IAuthCreateData } from './interfaces/auth-data.interface';
 
 @ApiTags('auth')
-@Controller('social')
+@Controller()
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UsersService,
   ) {}
 
-  @Get('login')
+  @Get('social/login')
   socialLogin(@Response() response, @Query('provider') provider: string) {
     if (provider === 'kakao')
       return response
@@ -31,7 +34,7 @@ export class AuthController {
     else throw new NotAcceptableException();
   }
 
-  @Get('oauth')
+  @Get('social/oauth')
   async oauth(
     @Response() response,
     @Query('code') code: string,
@@ -42,7 +45,6 @@ export class AuthController {
     const authToken = await this.authService.getSocialToken(code);
     const { id, kakao_account, properties } =
       await this.authService.getSocialInfo(authToken);
-    console.log(kakao_account, properties);
     const authCreateData: IAuthCreateData = {
       provider: 1,
       socialId: id,
@@ -61,8 +63,14 @@ export class AuthController {
       await this.userService.create(userData);
     }
 
-    return response
-      .set({ Authorization: `Bearer ${authToken.access_token}` })
-      .json(userData);
+    return response.json({ accessToken: authToken.access_token, ...userData });
+  }
+
+  @Post('login')
+  async login(@Response() response, @Body() loginAuthDto: LoginAuthDto) {
+    const user = await this.authService.validateUser(loginAuthDto);
+    const token = await this.authService.createToken(user);
+    // const decoded = await this.authService.decodeToken(token);
+    return response.set({ Authorization: `Bearer ${token}` }).json(user);
   }
 }
