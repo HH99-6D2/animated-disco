@@ -1,46 +1,56 @@
-import { Entity, BaseEntity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  BaseEntity,
+  PrimaryGeneratedColumn,
+  Column,
+  Long,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Room extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id:number;
+  id: number;
 
   @Column()
-  userId:number;
+  userId: number;
 
   @Column()
   title: string;
-  
-  @Column()
+
+  @Column({ type: 'float' })
   positionX: number;
-  
-  @Column()
-  positoinY: number;
-  
-  @Column()
+
+  @Column({ type: 'float' })
+  positionY: number;
+
+  @CreateDateColumn()
   createdDate: Date;
-  
-  @Column()
+
+  @Column({ nullable: true })
   updatedDate: Date;
-  
+
   @Column()
   startDate: Date;
-  
+
   @Column()
   endDate: Date;
-  
+
   @Column()
   categoryId: number;
-  
+
   @Column()
   maxUser: number;
-  
+
   @Column()
   imageUrl: string;
-  
+
   @Column()
-  regioAId: number;
-  
+  regionAId: number;
+
   @Column()
-  regioBId: number;
+  regionBId: number;
+
+  @Column({ type: 'tinyint', default: 0 }) // 0: 대기, 1: 활성, 2: 종료
+  status: number;
 }
