@@ -22,10 +22,10 @@ export class Room extends BaseEntity {
   @Column()
   title: string;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'decimal', precision: 20, scale: 14, default: 0 })
   positionX: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'decimal', precision: 20, scale: 14, default: 0 })
   positionY: number;
 
   @CreateDateColumn()
