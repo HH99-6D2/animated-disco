@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Room } from './entities/room.entity';
+import { Room } from '../entities/room.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomRepository } from './room.repository';
 import { TagRepository } from '../tags/tag.repository';
-import { Tag } from '../tags/entities/tag.entity';
-import { create } from 'domain';
 import { Not } from 'typeorm';
 
 @Injectable()
@@ -23,6 +21,14 @@ export class RoomsService {
     return rooms;
   }
 
+  async getRoomById(id: number): Promise<Room> {
+    const room = await this.roomRepository.findOne({
+      id,
+      status: Not(2),
+    });
+    return room;
+  }
+
   async createRoom(createRoomDto: CreateRoomDto): Promise<void> {
     const { tags } = createRoomDto;
 
@@ -36,5 +42,9 @@ export class RoomsService {
     });
 
     await this.roomRepository.save(room);
+  }
+
+  async updateRoomStatus(id: number, status: number): Promise<void> {
+    await this.roomRepository.update(id, { status });
   }
 }

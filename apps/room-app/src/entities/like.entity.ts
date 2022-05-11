@@ -1,4 +1,4 @@
-import { Room } from '../../rooms/entities/room.entity';
+import { Room } from './room.entity';
 import {
   Entity,
   BaseEntity,

@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 import { Long } from 'typeorm';
-import { Tag } from '../../tags/entities/tag.entity';
+import { Tag } from '../../entities/tag.entity';
 
 export class CreateRoomDto {
   @IsNotEmpty()

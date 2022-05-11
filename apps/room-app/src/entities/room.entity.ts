@@ -1,5 +1,5 @@
-import { Tag } from '../../tags/entities/tag.entity';
-import { Like } from '../../likes/entities/like.entity';
+import { Tag } from './tag.entity';
+import { Like } from './like.entity';
 import {
   Entity,
   BaseEntity,

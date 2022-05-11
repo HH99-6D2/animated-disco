@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { Room } from '../rooms/entities/room.entity';
-import { Tag } from '../tags/entities/tag.entity';
-import { Like } from '../likes/entities/like.entity';
+import { Room } from '../entities/room.entity';
+import { Tag } from '../entities/tag.entity';
+import { Like } from '../entities/like.entity';
 
 export const typeORMConfig: TypeOrmModuleOptions = {
   type: 'mysql',
