@@ -9,7 +9,7 @@ export class SocialService {
       return `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URL}&response_type=code&scope=profile_nickname,account_email,profile_image`;
     else throw new NotAcceptableException('social provider kakao only');
   }
-  async getSocialInfo(accessToken: string): Promise<unknown> {
+  async getUserInfo(accessToken: string): Promise<unknown> {
     return axios({
       method: 'POST',
       url: 'https://kapi.kakao.com/v2/user/me',
@@ -19,7 +19,7 @@ export class SocialService {
     });
   }
 
-  async getSocialTokenInfo(accessToken: string): Promise<unknown> {
+  async getTokenInfo(accessToken: string): Promise<unknown> {
     return axios({
       method: 'GET',
       url: 'https://kapi.kakao.com/v1/user/access_token_info',
@@ -29,12 +29,12 @@ export class SocialService {
     });
   }
 
-  async getSocialToken(code: string) {
+  async getToken(code: string) {
     return axios({
       method: 'POST',
       url: 'https://kauth.kakao.com/oauth/token',
       headers: {
-        'content-type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       data: stringify({
         grant_type: 'authorization_code',
@@ -42,6 +42,20 @@ export class SocialService {
         client_secret: process.env.CLIENT_SECRET,
         redirectUri: process.env.REDIRECT_URL,
         code: code,
+      }),
+    });
+  }
+  async logout(socialId: string) {
+    return axios({
+      method: 'POST',
+      url: 'https://kapi.kakao.com/v1/user/logout',
+      headers: {
+        Authorization: `KakaoAK ${process.env.ADMIN_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      data: stringify({
+        target_id_type: 'user_id',
+        target_id: socialId,
       }),
     });
   }

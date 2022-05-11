@@ -22,7 +22,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginAuthDto: LoginAuthDto) {
-    const socialTokenInfo = await this.socialService.getSocialTokenInfo(
+    const socialTokenInfo = await this.socialService.getTokenInfo(
       loginAuthDto.accessToken,
     );
     const user = await this.authService.validateUser(
@@ -40,8 +40,8 @@ export class AuthController {
     //    @Query('error') error: string,
   ) {
     //   if (error) throw new UnauthorizedException('Kakao login rejected');
-    const token = await this.socialService.getSocialToken(code);
-    const socialInfo = await this.socialService.getSocialInfo(
+    const token = await this.socialService.getToken(code);
+    const socialInfo = await this.socialService.getUserInfo(
       token['data']['access_token'],
     );
     const authUser = await this.authService.findOneOrCreate(
