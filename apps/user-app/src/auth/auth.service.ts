@@ -1,21 +1,19 @@
 import {
   BadRequestException,
   ForbiddenException,
+  ImATeapotException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
-import axios from 'axios';
-import { stringify } from 'qs';
-import { IKakaoTokenData } from './interfaces/social-token-data.interface';
-import { IkakaoSocialData } from './interfaces/social-data.interface';
-import { IAuthCreateData } from './interfaces/auth-data.interface';
 import { UsersService } from '../users/users.service';
-import { LoginAuthDto } from './dto/login-auth.dto';
 import * as jwt from 'jsonwebtoken';
 import { User } from '../users/entities/user.entity';
+import { IJwtPayLoad } from './interfaces/jwt.interface';
+import { isInstance } from 'class-validator';
 
 @Injectable()
 export class AuthService {
@@ -24,94 +22,61 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  async create(authCreateData: IAuthCreateData) {
+  async create(provider: number, socialId: string): Promise<Auth> {
     const createAuthDTO = new CreateAuthDto();
-    createAuthDTO.provider = authCreateData.provider || 1;
-    createAuthDTO.socialId = authCreateData.socialId;
-    createAuthDTO.email = authCreateData.email || null;
-    const auth = this.authRepository.create(createAuthDTO);
-    return await this.authRepository.save(auth);
+    createAuthDTO.provider = provider;
+    createAuthDTO.socialId = socialId;
+    const socialProfile = this.authRepository.create(createAuthDTO);
+    return this.authRepository.save(socialProfile);
   }
 
-  async findOne(authfindData: IAuthCreateData): Promise<Auth> {
-    const auth = await this.authRepository.findOne({
-      socialId: authfindData.socialId,
-      provider: authfindData.provider,
+  async findOne(provider: number, socialId: string): Promise<Auth> {
+    return this.authRepository.findOneOrFail({
+      socialId,
+      provider,
     });
-    return auth;
+  }
+  async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
+    console.log(provider, socialId);
+    return this.authRepository
+      .findOne({ provider, socialId })
+      .then((auth) => (auth ? auth : this.create(provider, socialId)));
   }
 
-  async getSocialInfo(token: IKakaoTokenData): Promise<IkakaoSocialData> {
-    const { data } = await axios({
-      method: 'POST',
-      url: 'https://kapi.kakao.com/v2/user/me',
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-      },
-    });
-    return data;
-  }
-  async getTokenInfo(accessToken: string): Promise<any> {
-    console.log('accTOKEN', accessToken);
-    const data = await axios({
-      method: 'GET',
-      url: 'https://kapi.kakao.com/v1/user/access_token_info',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    console.log(data);
-    return data;
-  }
-
-  async getSocialToken(code: string): Promise<any> {
-    const { data } = await axios({
-      method: 'POST',
-      url: 'https://kauth.kakao.com/oauth/token',
-      headers: {
-        'content-type': 'application/x-www-form-urlencoded',
-      },
-      data: stringify({
-        grant_type: 'authorization_code',
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        redirectUri: process.env.REDIRECT_URL,
-        code: code,
-      }),
-    });
-    return data;
-  }
-
-  async validateUser(loginAuthDto: LoginAuthDto): Promise<any> {
-    const { accessToken, id } = loginAuthDto;
-    const { data } = await this.getTokenInfo(accessToken);
+  async validateUser(id: number, socialId: string): Promise<any> {
     const user = await this.usersService.findOne(id);
     const socialProfile = await this.authRepository.findOne(id);
-    if (socialProfile.socialId !== `${data.id}` || !user)
-      throw new BadRequestException();
+    if (socialProfile.socialId !== socialId) throw new BadRequestException();
     if (!user.isActive) throw new ForbiddenException();
     return user;
   }
 
-  async createToken(user: User) {
+  async createToken(user: User, accessToken: string): Promise<unknown> {
     const prom = new Promise((res, _) => {
       res(
-        jwt.sign({ ...user }, process.env.JWT_AUTH_SECRET, {
-          expiresIn: '12h',
+        jwt.sign({ ...user, accessToken }, process.env.JWT_AUTH_SECRET, {
+          expiresIn: '2h',
           algorithm: 'HS256',
         }),
       );
-    }).then((d) => d);
+    }).then((d: string) => d);
     const token = await prom;
     return token;
   }
 
-  async decodeToken(token) {
-    const prom = new Promise((res, _) => {
-      res(jwt.verify(token, process.env.JWT_AUTH_SECRET));
-    }).then((d) => d);
-
-    const payload = await prom;
-    return payload;
+  async decodeToken(token: string) {
+    try {
+      const prom = await new Promise((res, _) => {
+        res(jwt.verify(token, process.env.JWT_AUTH_SECRET));
+      }).then((d: IJwtPayLoad) => d);
+      return prom;
+    } catch (err) {
+      console.log(err);
+      if (isInstance(err, jwt.TokenExpiredError))
+        throw new UnauthorizedException('Expired');
+      throw isInstance(err, jwt.JsonWebTokenError)
+        ? new BadRequestException('Wrong Token')
+        : new ImATeapotException('No Idea');
+    }
   }
 }
