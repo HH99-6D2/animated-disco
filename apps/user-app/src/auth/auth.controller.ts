@@ -1,14 +1,6 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Response,
-  NotAcceptableException,
-  Post,
-  Body,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Get, Query, Response, Post, Body } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { SocialService } from '../social/social.service';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
@@ -19,22 +11,24 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UsersService,
+    private readonly socialService: SocialService,
   ) {}
 
   @Get('login')
   async socialLogin(@Response() response, @Query('provider') provider: string) {
-    if (provider === 'kakao')
-      return response
-        .status(302)
-        .redirect(
-          `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URL}&response_type=code&scope=profile_nickname,account_email,profile_image`,
-        );
-    else throw new NotAcceptableException('social provider kakao only');
+    const redirectUrl = this.socialService.getLoginUrl(provider);
+    return response.status(302).redirect(redirectUrl);
   }
 
   @Post('login')
   async login(@Body() loginAuthDto: LoginAuthDto) {
-    const user = await this.authService.validateUser(loginAuthDto);
+    const socialTokenInfo = await this.socialService.getSocialTokenInfo(
+      loginAuthDto.accessToken,
+    );
+    const user = await this.authService.validateUser(
+      loginAuthDto.id,
+      `${socialTokenInfo['data']['id']}`,
+    );
     const token = await this.authService.createToken(user);
     return { ...user, token };
   }
@@ -43,12 +37,11 @@ export class AuthController {
   async oauth(
     @Response() response,
     @Query('code') code: string,
-    @Query('error') error: string,
+    //    @Query('error') error: string,
   ) {
-    if (error) throw new UnauthorizedException('Kakao login rejected');
-
-    const token = await this.authService.getSocialToken(code);
-    const socialInfo = await this.authService.getSocialInfo(
+    //   if (error) throw new UnauthorizedException('Kakao login rejected');
+    const token = await this.socialService.getSocialToken(code);
+    const socialInfo = await this.socialService.getSocialInfo(
       token['data']['access_token'],
     );
     const authUser = await this.authService.findOneOrCreate(
