@@ -59,4 +59,18 @@ export class SocialService {
       }),
     });
   }
+  async unlink(socialId: string) {
+    return axios({
+      method: 'POST',
+      url: 'https://kapi.kakao.com/v1/user/unlink',
+      headers: {
+        Authorization: `KakaoAK ${process.env.ADMIN_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      data: stringify({
+        target_id_type: 'user_id',
+        target_id: socialId,
+      }),
+    });
+  }
 }
