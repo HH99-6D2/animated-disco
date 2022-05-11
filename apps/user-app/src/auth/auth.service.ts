@@ -7,10 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
-import axios from 'axios';
-import { stringify } from 'qs';
 import { UsersService } from '../users/users.service';
-import { LoginAuthDto } from './dto/login-auth.dto';
 import * as jwt from 'jsonwebtoken';
 import { User } from '../users/entities/user.entity';
 
@@ -42,50 +39,10 @@ export class AuthService {
       .then((auth) => (auth ? auth : this.create(provider, socialId)));
   }
 
-  async getSocialInfo(accessToken: string): Promise<unknown> {
-    return axios({
-      method: 'POST',
-      url: 'https://kapi.kakao.com/v2/user/me',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-  }
-
-  async getTokenInfo(accessToken: string): Promise<unknown> {
-    return axios({
-      method: 'GET',
-      url: 'https://kapi.kakao.com/v1/user/access_token_info',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-  }
-
-  async getSocialToken(code: string) {
-    return axios({
-      method: 'POST',
-      url: 'https://kauth.kakao.com/oauth/token',
-      headers: {
-        'content-type': 'application/x-www-form-urlencoded',
-      },
-      data: stringify({
-        grant_type: 'authorization_code',
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        redirectUri: process.env.REDIRECT_URL,
-        code: code,
-      }),
-    });
-  }
-
-  async validateUser(loginAuthDto: LoginAuthDto): Promise<any> {
-    const { accessToken, id } = loginAuthDto;
-    const token = await this.getTokenInfo(accessToken);
+  async validateUser(id: number, socialId: string): Promise<any> {
     const user = await this.usersService.findOne(id);
     const socialProfile = await this.authRepository.findOne(id);
-    if (socialProfile.socialId !== `${token['data']['id']}`)
-      throw new BadRequestException();
+    if (socialProfile.socialId !== socialId) throw new BadRequestException();
     if (!user.isActive) throw new ForbiddenException();
     return user;
   }
