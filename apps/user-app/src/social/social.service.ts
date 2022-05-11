@@ -1,5 +1,6 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import axios from 'axios';
+import { access } from 'fs';
 import { stringify } from 'qs';
 
 @Injectable()
@@ -9,7 +10,7 @@ export class SocialService {
       return `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URL}&response_type=code&scope=profile_nickname,account_email,profile_image`;
     else throw new NotAcceptableException('social provider kakao only');
   }
-  async getUserInfo(accessToken: string): Promise<unknown> {
+  async getUserInfo(accessToken: string) {
     return axios({
       method: 'POST',
       url: 'https://kapi.kakao.com/v2/user/me',
@@ -19,7 +20,7 @@ export class SocialService {
     });
   }
 
-  async getTokenInfo(accessToken: string): Promise<unknown> {
+  async getTokenInfo(accessToken: string) {
     return axios({
       method: 'GET',
       url: 'https://kapi.kakao.com/v1/user/access_token_info',
@@ -45,32 +46,34 @@ export class SocialService {
       }),
     });
   }
-  async logout(socialId: string) {
+  async logout(accessToken: string) {
     return axios({
       method: 'POST',
       url: 'https://kapi.kakao.com/v1/user/logout',
       headers: {
-        Authorization: `KakaoAK ${process.env.ADMIN_KEY}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Bearer ${accessToken}`,
       },
-      data: stringify({
-        target_id_type: 'user_id',
-        target_id: socialId,
-      }),
     });
   }
-  async unlink(socialId: string) {
+  async unlink(accessToken: string) {
     return axios({
       method: 'POST',
       url: 'https://kapi.kakao.com/v1/user/unlink',
       headers: {
-        Authorization: `KakaoAK ${process.env.ADMIN_KEY}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Bearer ${accessToken}`,
       },
-      data: stringify({
-        target_id_type: 'user_id',
-        target_id: socialId,
-      }),
     });
+  }
+  async refreshToken(accessToken: string) {
+    return accessToken;
+    /*
+    return axios({
+      method: 'POST',
+      url: 'https://kapi.kakao.com/v1/user/unlink',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    */
   }
 }

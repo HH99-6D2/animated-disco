@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, Length } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class LoginAuthDto {
   @ApiProperty({
@@ -16,6 +16,5 @@ export class LoginAuthDto {
     uniqueItems: true,
   })
   @IsString()
-  @Length(54)
   accessToken: string;
 }

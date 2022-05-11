@@ -20,26 +20,8 @@ export class AuthController {
     return response.status(302).redirect(redirectUrl);
   }
 
-  @Post('login')
-  async login(@Body() loginAuthDto: LoginAuthDto) {
-    const socialTokenInfo = await this.socialService.getTokenInfo(
-      loginAuthDto.accessToken,
-    );
-    const user = await this.authService.validateUser(
-      loginAuthDto.id,
-      `${socialTokenInfo['data']['id']}`,
-    );
-    const token = await this.authService.createToken(user);
-    return { ...user, token };
-  }
-
   @Get('oauth')
-  async oauth(
-    @Response() response,
-    @Query('code') code: string,
-    //    @Query('error') error: string,
-  ) {
-    //   if (error) throw new UnauthorizedException('Kakao login rejected');
+  async oauth(@Response() response, @Query('code') code: string) {
     const token = await this.socialService.getToken(code);
     const socialInfo = await this.socialService.getUserInfo(
       token['data']['access_token'],
@@ -50,8 +32,71 @@ export class AuthController {
     );
     const user = await this.userService.findOneOrCreate(authUser.id);
     return response.json({
-      accessToken: token['data']['access_token'],
-      ...user,
+      user,
+      accessToken: await this.authService.createToken(
+        user,
+        token['data']['access_token'],
+      ),
     });
+  }
+
+  @Post('logout')
+  async logout(@Body() loginAuthDto: LoginAuthDto) {
+    const decoded = await this.authService.decodeToken(
+      loginAuthDto.accessToken,
+    );
+    const { accessToken } = decoded;
+    if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
+    const result = await this.socialService.logout(accessToken);
+    console.log(result.status, result.statusText);
+    return 'logout';
+
+    //    const user = await this.authService.decodeToken(loginAuthDto.accessToken);
+    //   await this.socialService.logout(loginAuthDto.accessToken);
+  }
+
+  @Post('refresh')
+  async refresh(@Response() response, @Body() loginAuthDto: LoginAuthDto) {
+    const decoded = await this.authService.decodeToken(
+      loginAuthDto.accessToken,
+    );
+    let { accessToken } = decoded;
+    delete decoded.accessToken;
+    delete decoded.iat;
+    delete decoded.exp;
+    console.log(decoded);
+    console.log(accessToken);
+    return response.json({
+      accessToken: await this.authService.createToken(decoded, accessToken),
+    });
+  }
+
+  @Post('checkLogin')
+  async checkLogin(@Body() loginAuthDto: LoginAuthDto) {
+    const decoded = await this.authService.decodeToken(
+      loginAuthDto.accessToken,
+    );
+    const { accessToken } = decoded;
+    console.log(decoded, accessToken);
+    if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
+    const result = await this.socialService.getTokenInfo(accessToken);
+    console.log(result.status, result.statusText);
+    return 'islogin';
+  }
+
+  @Post('signout')
+  async signout(@Body() loginAuthDto: LoginAuthDto) {
+    const decoded = await this.authService.decodeToken(
+      loginAuthDto.accessToken,
+    );
+    const { accessToken } = decoded;
+    console.log(decoded, accessToken);
+    if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
+
+    const result = await this.socialService.unlink(accessToken);
+    console.log(result.status, result.statusText);
+    return 'logout';
+    //    const user = await this.authService.decodeToken(loginAuthDto.accessToken);
+    //   await this.socialService.logout(loginAuthDto.accessToken);
   }
 }

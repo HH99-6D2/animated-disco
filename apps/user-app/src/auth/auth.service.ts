@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   ForbiddenException,
+  ImATeapotException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,6 +12,8 @@ import { Auth } from './entities/auth.entity';
 import { UsersService } from '../users/users.service';
 import * as jwt from 'jsonwebtoken';
 import { User } from '../users/entities/user.entity';
+import { IJwtPayLoad } from './interfaces/jwt.interface';
+import { isInstance } from 'class-validator';
 
 @Injectable()
 export class AuthService {
@@ -22,8 +26,8 @@ export class AuthService {
     const createAuthDTO = new CreateAuthDto();
     createAuthDTO.provider = provider;
     createAuthDTO.socialId = socialId;
-    const auth = this.authRepository.create(createAuthDTO);
-    return this.authRepository.save(auth);
+    const socialProfile = this.authRepository.create(createAuthDTO);
+    return this.authRepository.save(socialProfile);
   }
 
   async findOne(provider: number, socialId: string): Promise<Auth> {
@@ -47,25 +51,32 @@ export class AuthService {
     return user;
   }
 
-  async createToken(user: User) {
+  async createToken(user: User, accessToken: string): Promise<unknown> {
     const prom = new Promise((res, _) => {
       res(
-        jwt.sign({ ...user }, process.env.JWT_AUTH_SECRET, {
-          expiresIn: '12h',
+        jwt.sign({ ...user, accessToken }, process.env.JWT_AUTH_SECRET, {
+          expiresIn: '2h',
           algorithm: 'HS256',
         }),
       );
-    }).then((d) => d);
+    }).then((d: string) => d);
     const token = await prom;
     return token;
   }
 
-  async decodeToken(token) {
-    const prom = new Promise((res, _) => {
-      res(jwt.verify(token, process.env.JWT_AUTH_SECRET));
-    }).then((d) => d);
-
-    const payload = await prom;
-    return payload;
+  async decodeToken(token: string) {
+    try {
+      const prom = await new Promise((res, _) => {
+        res(jwt.verify(token, process.env.JWT_AUTH_SECRET));
+      }).then((d: IJwtPayLoad) => d);
+      return prom;
+    } catch (err) {
+      console.log(err);
+      if (isInstance(err, jwt.TokenExpiredError))
+        throw new UnauthorizedException('Expired');
+      throw isInstance(err, jwt.JsonWebTokenError)
+        ? new BadRequestException('Wrong Token')
+        : new ImATeapotException('No Idea');
+    }
   }
 }
