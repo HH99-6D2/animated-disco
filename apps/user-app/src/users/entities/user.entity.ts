@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 export class User {
   @PrimaryColumn({ nullable: false })
   id: number;
-  @Column({ type: 'varchar', length: 16, nullable: false })
+  @Column({ type: 'varchar', length: 16, nullable: true })
   nickname: string;
   @Column({ type: 'varchar', length: 128, nullable: true })
   imageUrl: string;

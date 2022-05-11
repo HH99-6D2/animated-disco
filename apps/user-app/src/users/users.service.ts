@@ -22,6 +22,8 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    delete updateUserDto.id;
+    delete updateUserDto.accessToken;
     return this.userRepository.update(id, updateUserDto);
   }
   async findOneOrCreate(id: number): Promise<User> {

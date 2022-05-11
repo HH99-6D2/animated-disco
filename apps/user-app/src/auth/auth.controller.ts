@@ -1,9 +1,11 @@
 import { Controller, Get, Query, Response, Post, Body } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SocialService } from '../social/social.service';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
+import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @ApiTags('auth')
 @Controller('social')
@@ -84,6 +86,23 @@ export class AuthController {
     return 'islogin';
   }
 
+  @Post('update')
+  async update(@Body() updateUserDto: UpdateUserDto) {
+    const decoded = await this.authService.decodeToken(
+      updateUserDto.accessToken,
+    );
+    const { accessToken } = decoded;
+    console.log(decoded, accessToken);
+    if (updateUserDto.id !== decoded.id) return 'WRONG DATA';
+    const result = await this.socialService.getTokenInfo(accessToken);
+    console.log(result.status, result.statusText);
+    const updated = await this.userService.update(
+      updateUserDto.id,
+      updateUserDto,
+    );
+    return updated;
+  }
+
   @Post('signout')
   async signout(@Body() loginAuthDto: LoginAuthDto) {
     const decoded = await this.authService.decodeToken(
@@ -96,7 +115,5 @@ export class AuthController {
     const result = await this.socialService.unlink(accessToken);
     console.log(result.status, result.statusText);
     return 'logout';
-    //    const user = await this.authService.decodeToken(loginAuthDto.accessToken);
-    //   await this.socialService.logout(loginAuthDto.accessToken);
   }
 }

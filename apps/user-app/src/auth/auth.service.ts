@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   ImATeapotException,
   Injectable,
   UnauthorizedException,
@@ -9,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
-import { UsersService } from '../users/users.service';
 import * as jwt from 'jsonwebtoken';
 import { User } from '../users/entities/user.entity';
 import { IJwtPayLoad } from './interfaces/jwt.interface';
@@ -19,7 +17,6 @@ import { isInstance } from 'class-validator';
 export class AuthService {
   constructor(
     @InjectRepository(Auth) private authRepository: Repository<Auth>,
-    private usersService: UsersService,
   ) {}
 
   async create(provider: number, socialId: string): Promise<Auth> {
@@ -41,14 +38,6 @@ export class AuthService {
     return this.authRepository
       .findOne({ provider, socialId })
       .then((auth) => (auth ? auth : this.create(provider, socialId)));
-  }
-
-  async validateUser(id: number, socialId: string): Promise<any> {
-    const user = await this.usersService.findOne(id);
-    const socialProfile = await this.authRepository.findOne(id);
-    if (socialProfile.socialId !== socialId) throw new BadRequestException();
-    if (!user.isActive) throw new ForbiddenException();
-    return user;
   }
 
   async createToken(user: User, accessToken: string): Promise<unknown> {

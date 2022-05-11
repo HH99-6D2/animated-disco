@@ -13,13 +13,14 @@ import { SocialService } from './social/social.service';
   imports: [
     ConfigModule.forRoot({ envFilePath: '.development.env' }),
     TypeOrmModule.forRoot({
+      host: 'localhost',
       type: 'mariadb',
       port: 3306,
       database: process.env.DATABASE_NAME,
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       entities: [User, Auth],
-      synchronize: false,
+      synchronize: true,
       migrations: ['dist/apps/user-app/src/db/migrations/*.js'],
       cli: {
         migrationsDir: 'apps/user-app/src/db/migrations',
@@ -33,6 +34,7 @@ import { SocialService } from './social/social.service';
   ],
   providers: [
     //   UserAppService
-  SocialService],
+    SocialService,
+  ],
 })
 export class UserAppModule {}
