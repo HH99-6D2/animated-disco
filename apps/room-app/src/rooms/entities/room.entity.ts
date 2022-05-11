@@ -1,14 +1,16 @@
 import { Tag } from '../../tags/entities/tag.entity';
+import { Like } from '../../likes/entities/like.entity';
 import {
   Entity,
   BaseEntity,
   PrimaryGeneratedColumn,
   Column,
-  Long,
   CreateDateColumn,
   ManyToMany,
   JoinTable,
   UpdateDateColumn,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity()
@@ -58,8 +60,10 @@ export class Room extends BaseEntity {
   @Column({ type: 'tinyint', default: 0 }) // 0: 대기, 1: 활성, 2: 종료
   status: number;
 
-  // @ManyToMany(() => Tag, (tags) => tags.id)
   @ManyToMany(() => Tag)
   @JoinTable()
   tags: Tag[];
+
+  @OneToMany(() => Like, (like) => like.roomId)
+  like: Like;
 }

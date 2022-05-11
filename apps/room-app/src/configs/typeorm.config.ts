@@ -1,6 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { Room } from '../rooms/entities/room.entity';
 import { Tag } from '../tags/entities/tag.entity';
+import { Like } from '../likes/entities/like.entity';
 
 export const typeORMConfig: TypeOrmModuleOptions = {
   type: 'mysql',
@@ -10,6 +11,6 @@ export const typeORMConfig: TypeOrmModuleOptions = {
   password: '1234',
   database: 'room',
   // entities: [__dirname + '/../**/*.entity{.js,.ts}'],
-  entities: [Room, Tag],
+  entities: [Room, Tag, Like],
   synchronize: true,
 };
