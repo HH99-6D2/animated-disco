@@ -1,6 +1,5 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import axios from 'axios';
-import { access } from 'fs';
 import { stringify } from 'qs';
 
 @Injectable()

@@ -6,8 +6,9 @@ import {
   MinLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { LoginAuthDto } from '../../auth/dto/login-auth.dto';
 
-export class UpdateUserDto {
+export class UpdateUserDto extends LoginAuthDto {
   @ApiProperty({
     description: 'NickName of user which can be temporarily updated.',
     minLength: 2,
