@@ -2,7 +2,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -20,18 +19,6 @@ export class CreateUserDto {
   @MinLength(2)
   @MaxLength(16)
   nickname: string;
-
-  @ApiProperty({
-    description:
-      'ImageUrl of user profile which is imported from social information.',
-    minLength: 10,
-    maxLength: 128,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsUrl()
-  @MaxLength(128)
-  imageUrl: string;
 
   @ApiProperty({
     description:

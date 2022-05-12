@@ -34,9 +34,12 @@ export class AuthService {
   }
 
   async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
-    return this.authRepository
-      .findOne({ provider, socialId })
-      .then((auth) => (auth ? auth : this.create(provider, socialId)));
+    return this.authRepository.findOne({ provider, socialId }).then((auth) => {
+      if (!auth) return this.create(provider, socialId);
+      auth.unlinkedAt = null;
+      this.authRepository.save(auth);
+      return auth;
+    });
   }
 
   async createToken(user: User): Promise<string[]> {

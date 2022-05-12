@@ -1,10 +1,4 @@
-import {
-  IsOptional,
-  IsString,
-  IsUrl,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -18,16 +12,4 @@ export class UpdateUserDto {
   @MinLength(2)
   @MaxLength(16)
   nickname: string;
-
-  @ApiProperty({
-    description:
-      'ImageUrl of user profile which can be updated by upload file or Link to image',
-    minLength: 10,
-    maxLength: 128,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsUrl()
-  @MaxLength(128)
-  imageUrl: string;
 }

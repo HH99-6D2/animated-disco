@@ -49,7 +49,10 @@ export class AuthController {
       1,
       socialInfo['data']['id'],
     );
-    const user = await this.userService.findOneOrCreate(authUser.id);
+    const user = await this.userService.findOneOrCreate(
+      authUser.id,
+      socialInfo['data']['kakao_account']['nickname'],
+    );
     const [accessToken, refreshToken] = await this.authService.createToken(
       user,
     );
