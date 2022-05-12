@@ -7,7 +7,10 @@ import {
   Body,
   HttpCode,
   Headers,
-  Request,
+  BadRequestException,
+  UnauthorizedException,
+  ServiceUnavailableException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SocialService } from '../social/social.service';
@@ -18,7 +21,7 @@ import { SocialTokenDto } from './dto/social-token.dto';
 import { UpdateTokenDto } from './dto/update-token.dto';
 
 @ApiTags('auth')
-@Controller('social')
+@Controller('api/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -33,11 +36,15 @@ export class AuthController {
   }
 
   @Get('oauth')
-  async oauth(@Response() response, @Query('code') code: string) {
+  async oauth(
+    @Response() response,
+    @Query('code') code: string,
+    @Query('error') error: string,
+  ) {
+    if (error)
+      throw new UnauthorizedException('SocialProvider Agreement Exception');
     const socialToken = await this.socialService.getToken(code);
-    const socialInfo = await this.socialService.getUserInfo(
-      socialToken['data']['access_token'],
-    );
+    const socialInfo = await this.socialService.getUserInfo(socialToken);
     const authUser = await this.authService.findOneOrCreate(
       1,
       socialInfo['data']['id'],
@@ -48,7 +55,7 @@ export class AuthController {
     );
     return response.json({
       user,
-      socialToken: socialToken['data']['access_token'],
+      socialToken: socialToken,
       accessToken,
       refreshToken,
     });
