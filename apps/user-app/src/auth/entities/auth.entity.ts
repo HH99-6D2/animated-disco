@@ -13,8 +13,6 @@ export class Auth {
   provider: number;
   @Column({ type: 'varchar', nullable: false, unique: true, length: 16 })
   socialId: string;
-  @Column({ type: 'varchar', length: 64, nullable: true })
-  email: string;
   @DeleteDateColumn()
   unlinkedAt: Date;
 }

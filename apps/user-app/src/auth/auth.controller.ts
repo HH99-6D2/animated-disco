@@ -1,13 +1,27 @@
-import { Controller, Get, Query, Response, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Response,
+  Post,
+  Body,
+  HttpCode,
+  Headers,
+  BadRequestException,
+  UnauthorizedException,
+  ServiceUnavailableException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SocialService } from '../social/social.service';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
-import { LoginAuthDto } from './dto/login-auth.dto';
+import { SocialTokenDto } from './dto/social-token.dto';
+import { UpdateTokenDto } from './dto/update-token.dto';
 
 @ApiTags('auth')
-@Controller('social')
+@Controller('api/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -22,97 +36,73 @@ export class AuthController {
   }
 
   @Get('oauth')
-  async oauth(@Response() response, @Query('code') code: string) {
-    const token = await this.socialService.getToken(code);
-    const socialInfo = await this.socialService.getUserInfo(
-      token['data']['access_token'],
-    );
+  async oauth(
+    @Response() response,
+    @Query('code') code: string,
+    @Query('error') error: string,
+  ) {
+    if (error)
+      throw new UnauthorizedException('SocialProvider Agreement Exception');
+    const socialToken = await this.socialService.getToken(code);
+    const socialInfo = await this.socialService.getUserInfo(socialToken);
     const authUser = await this.authService.findOneOrCreate(
       1,
       socialInfo['data']['id'],
     );
-    const user = await this.userService.findOneOrCreate(authUser.id);
+    const user = await this.userService.findOneOrCreate(
+      authUser.id,
+      socialInfo['data']['kakao_account']['nickname'],
+    );
+    const [accessToken, refreshToken] = await this.authService.createToken(
+      user,
+    );
     return response.json({
       user,
-      accessToken: await this.authService.createToken(
-        user,
-        token['data']['access_token'],
-      ),
+      socialToken: socialToken,
+      accessToken,
+      refreshToken,
     });
-  }
-
-  @Post('logout')
-  async logout(@Body() loginAuthDto: LoginAuthDto) {
-    const decoded = await this.authService.decodeToken(
-      loginAuthDto.accessToken,
-    );
-    const { accessToken } = decoded;
-    if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
-    const result = await this.socialService.logout(accessToken);
-    console.log(result.status, result.statusText);
-    return 'logout';
-
-    //    const user = await this.authService.decodeToken(loginAuthDto.accessToken);
-    //   await this.socialService.logout(loginAuthDto.accessToken);
   }
 
   @Post('refresh')
-  async refresh(@Response() response, @Body() loginAuthDto: LoginAuthDto) {
-    const decoded = await this.authService.decodeToken(
-      loginAuthDto.accessToken,
+  async refresh(@Response() response, @Body() updateTokenDto: UpdateTokenDto) {
+    const payload = await this.authService.decodeRefreshToken(
+      updateTokenDto.refreshToken,
     );
-    let { accessToken } = decoded;
-    delete decoded.accessToken;
-    delete decoded.iat;
-    delete decoded.exp;
-    console.log(decoded);
-    console.log(accessToken);
-    return response.json({
-      accessToken: await this.authService.createToken(decoded, accessToken),
+    delete payload.iat;
+    delete payload.exp;
+    return response.status(201).json({
+      accessToken: await this.authService.createToken(payload),
     });
   }
 
-  @Post('checkLogin')
-  async checkLogin(@Body() loginAuthDto: LoginAuthDto) {
-    const decoded = await this.authService.decodeToken(
-      loginAuthDto.accessToken,
-    );
-    const { accessToken } = decoded;
-    console.log(decoded, accessToken);
-    if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
-    const result = await this.socialService.getTokenInfo(accessToken);
-    console.log(result.status, result.statusText);
-    return 'islogin';
-  }
-
   @Post('update')
-  async update(@Body() updateUserDto: UpdateUserDto) {
-    const decoded = await this.authService.decodeToken(
-      updateUserDto.accessToken,
-    );
-    const { accessToken } = decoded;
-    console.log(decoded, accessToken);
-    if (updateUserDto.id !== decoded.id) return 'WRONG DATA';
-    const result = await this.socialService.getTokenInfo(accessToken);
-    console.log(result.status, result.statusText);
-    const updated = await this.userService.update(
-      updateUserDto.id,
-      updateUserDto,
-    );
+  async update(
+    @Body() updateUserDto: UpdateUserDto,
+    @Headers('Authorization') accessToken: string,
+  ) {
+    const decoded = await this.authService.decodeToken(accessToken);
+    const updated = await this.userService.update(decoded.id, updateUserDto);
     return updated;
   }
 
   @Post('signout')
-  async signout(@Body() loginAuthDto: LoginAuthDto) {
-    const decoded = await this.authService.decodeToken(
-      loginAuthDto.accessToken,
-    );
-    const { accessToken } = decoded;
-    console.log(decoded, accessToken);
-    if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
+  async signout(
+    @Headers('Authorization') accessToken: string,
+    @Body() socialTokenDto: SocialTokenDto,
+  ) {
+    await this.authService.decodeToken(accessToken);
+    await this.socialService.unlink(socialTokenDto.accessToken);
+    return HttpCode(200);
+  }
 
-    const result = await this.socialService.unlink(accessToken);
-    console.log(result.status, result.statusText);
-    return 'logout';
+  @Post('logout')
+  async logout(
+    @Headers('Authorization') accessToken: string,
+    @Body() socialTokenDto: SocialTokenDto,
+  ) {
+    await this.authService.decodeToken(accessToken);
+    await this.socialService.logout(socialTokenDto.accessToken);
+    return HttpCode(200);
   }
 }

@@ -27,45 +27,72 @@ export class AuthService {
     return this.authRepository.save(socialProfile);
   }
 
-  async findOne(provider: number, socialId: string): Promise<Auth> {
+  async findOne(id): Promise<Auth> {
     return this.authRepository.findOneOrFail({
-      socialId,
-      provider,
+      id,
     });
   }
+
   async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
-    console.log(provider, socialId);
-    return this.authRepository
-      .findOne({ provider, socialId })
-      .then((auth) => (auth ? auth : this.create(provider, socialId)));
+    return this.authRepository.findOne({ provider, socialId }).then((auth) => {
+      if (!auth) return this.create(provider, socialId);
+      auth.unlinkedAt = null;
+      this.authRepository.save(auth);
+      return auth;
+    });
   }
 
-  async createToken(user: User, accessToken: string): Promise<unknown> {
-    const prom = new Promise((res, _) => {
-      res(
-        jwt.sign({ ...user, accessToken }, process.env.JWT_AUTH_SECRET, {
-          expiresIn: '2h',
+  async createToken(user: User): Promise<string[]> {
+    const prom = await new Promise((res, _) => {
+      res([
+        jwt.sign({ ...user }, process.env.JWT_AUTH_SECRET, {
+          expiresIn: '10m',
           algorithm: 'HS256',
         }),
-      );
-    }).then((d: string) => d);
-    const token = await prom;
-    return token;
+        jwt.sign({ ...user }, process.env.JWT_AUTH_REFRESH_SECRET, {
+          expiresIn: '10H',
+          algorithm: 'HS512',
+        }),
+      ]);
+    }).then((d: string[]) => d);
+    return prom;
   }
 
   async decodeToken(token: string) {
     try {
+      token = this.parseToken(token);
       const prom = await new Promise((res, _) => {
         res(jwt.verify(token, process.env.JWT_AUTH_SECRET));
       }).then((d: IJwtPayLoad) => d);
       return prom;
     } catch (err) {
-      console.log(err);
       if (isInstance(err, jwt.TokenExpiredError))
         throw new UnauthorizedException('Expired');
       throw isInstance(err, jwt.JsonWebTokenError)
-        ? new BadRequestException('Wrong Token')
+        ? new BadRequestException('Wrong Token!')
         : new ImATeapotException('No Idea');
     }
+  }
+
+  async decodeRefreshToken(token: string) {
+    try {
+      token = this.parseToken(token);
+      const prom = await new Promise((res, _) => {
+        res(jwt.verify(token, process.env.JWT_AUTH_REFRESH_SECRET));
+      }).then((d: IJwtPayLoad) => d);
+      return prom;
+    } catch (err) {
+      if (isInstance(err, jwt.TokenExpiredError))
+        throw new UnauthorizedException(err.message || 'Expired');
+      throw isInstance(err, jwt.JsonWebTokenError)
+        ? new BadRequestException(err.message || 'Wrong Token')
+        : new ImATeapotException('No Idea');
+    }
+  }
+
+  parseToken(tokenString: string) {
+    if (tokenString.indexOf('bearer ') !== 0)
+      throw new jwt.JsonWebTokenError('Wrong Token Type');
+    return tokenString.split('bearer ')[1];
   }
 }
