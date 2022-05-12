@@ -19,16 +19,6 @@ export class SocialService {
     });
   }
 
-  async getTokenInfo(accessToken: string) {
-    return axios({
-      method: 'GET',
-      url: 'https://kapi.kakao.com/v1/user/access_token_info',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-  }
-
   async getToken(code: string) {
     return axios({
       method: 'POST',
@@ -45,34 +35,22 @@ export class SocialService {
       }),
     });
   }
-  async logout(accessToken: string) {
+  async logout(socialToken: string) {
     return axios({
       method: 'POST',
       url: 'https://kapi.kakao.com/v1/user/logout',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${socialToken}`,
       },
     });
   }
-  async unlink(accessToken: string) {
+  async unlink(socialToken: string) {
     return axios({
       method: 'POST',
       url: 'https://kapi.kakao.com/v1/user/unlink',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${socialToken}`,
       },
     });
-  }
-  async refreshToken(accessToken: string) {
-    return accessToken;
-    /*
-    return axios({
-      method: 'POST',
-      url: 'https://kapi.kakao.com/v1/user/unlink',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    */
   }
 }
