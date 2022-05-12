@@ -1,5 +1,9 @@
 import { Tag } from './tag.entity';
 import { Like } from './like.entity';
+import { ManyToOne } from 'typeorm';
+import { RegionA } from './regionA.entity';
+import { RegionB } from './regionB.entity';
+import { Category } from './category.entity';
 import {
   Entity,
   BaseEntity,
@@ -43,19 +47,10 @@ export class Room extends BaseEntity {
   endDate: Date;
 
   @Column()
-  categoryId: number;
-
-  @Column()
   maxUser: number;
 
   @Column()
   imageUrl: string;
-
-  @Column()
-  regionAId: number;
-
-  @Column()
-  regionBId: number;
 
   @Column({ type: 'tinyint', default: 0 }) // 0: 대기, 1: 활성, 2: 종료
   status: number;
@@ -66,4 +61,27 @@ export class Room extends BaseEntity {
 
   @OneToMany(() => Like, (like) => like.roomId)
   like: Like;
+
+  @ManyToOne(() => Category, (category) => category.id )
+  @JoinColumn({
+    name:'categoryId',
+    referencedColumnName:'id'
+  })
+  categoryId: Category;
+
+
+  @ManyToOne(() => RegionA, (regionA) => regionA.id)
+  @JoinColumn({
+    name:'regionAId',
+    referencedColumnName:'id'
+  })
+  regionAId: RegionA;
+
+
+  @ManyToOne(() => RegionB, (regionB) => regionB.id)
+  @JoinColumn({
+    name:'regionBId',
+    referencedColumnName:'id'
+  })
+  regionBId: RegionB;
 }
