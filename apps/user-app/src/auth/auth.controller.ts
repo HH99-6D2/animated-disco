@@ -49,7 +49,6 @@ export class AuthController {
     const { accessToken } = decoded;
     if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
     const result = await this.socialService.logout(accessToken);
-    console.log(result.status, result.statusText);
     return 'logout';
 
     //    const user = await this.authService.decodeToken(loginAuthDto.accessToken);
@@ -65,8 +64,6 @@ export class AuthController {
     delete decoded.accessToken;
     delete decoded.iat;
     delete decoded.exp;
-    console.log(decoded);
-    console.log(accessToken);
     return response.json({
       accessToken: await this.authService.createToken(decoded, accessToken),
     });
@@ -78,11 +75,11 @@ export class AuthController {
       loginAuthDto.accessToken,
     );
     const { accessToken } = decoded;
-    console.log(decoded, accessToken);
     if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
-    const result = await this.socialService.getTokenInfo(accessToken);
-    console.log(result.status, result.statusText);
-    return 'islogin';
+    // TODO
+    const legacy = await this.authService.getUserToken(id);
+    if (accessToken === legacy) return 'islogin';
+    return 'notlogin';
   }
 
   @Post('update')
@@ -91,10 +88,8 @@ export class AuthController {
       updateUserDto.accessToken,
     );
     const { accessToken } = decoded;
-    console.log(decoded, accessToken);
     if (updateUserDto.id !== decoded.id) return 'WRONG DATA';
     const result = await this.socialService.getTokenInfo(accessToken);
-    console.log(result.status, result.statusText);
     const updated = await this.userService.update(
       updateUserDto.id,
       updateUserDto,
@@ -108,11 +103,9 @@ export class AuthController {
       loginAuthDto.accessToken,
     );
     const { accessToken } = decoded;
-    console.log(decoded, accessToken);
     if (loginAuthDto.id !== decoded.id) return 'WRONG DATA';
 
     const result = await this.socialService.unlink(accessToken);
-    console.log(result.status, result.statusText);
     return 'logout';
   }
 }

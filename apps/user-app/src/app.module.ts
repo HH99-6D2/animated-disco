@@ -13,7 +13,7 @@ import { SocialService } from './social/social.service';
   imports: [
     ConfigModule.forRoot({ envFilePath: '.development.env' }),
     TypeOrmModule.forRoot({
-      host: 'localhost',
+      host: process.env.DATABASE_HOST,
       type: 'mariadb',
       port: 3306,
       database: process.env.DATABASE_NAME,

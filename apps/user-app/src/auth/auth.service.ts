@@ -34,14 +34,13 @@ export class AuthService {
     });
   }
   async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
-    console.log(provider, socialId);
     return this.authRepository
       .findOne({ provider, socialId })
       .then((auth) => (auth ? auth : this.create(provider, socialId)));
   }
 
   async createToken(user: User, accessToken: string): Promise<unknown> {
-    const prom = new Promise((res, _) => {
+    const prom = await new Promise((res, _) => {
       res(
         jwt.sign({ ...user, accessToken }, process.env.JWT_AUTH_SECRET, {
           expiresIn: '2h',
@@ -60,12 +59,14 @@ export class AuthService {
       }).then((d: IJwtPayLoad) => d);
       return prom;
     } catch (err) {
-      console.log(err);
       if (isInstance(err, jwt.TokenExpiredError))
         throw new UnauthorizedException('Expired');
       throw isInstance(err, jwt.JsonWebTokenError)
         ? new BadRequestException('Wrong Token')
         : new ImATeapotException('No Idea');
     }
+  }
+  async getUserToken(id: string) {
+    //
   }
 }
