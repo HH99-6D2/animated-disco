@@ -28,7 +28,7 @@ export class UsersService {
   async findOneOrCreate(id: number, nickname: string): Promise<User> {
     return this.userRepository.findOne(id).then((user) => {
       if (!user) return this.create(id, nickname);
-      if (!user.isActive) return user;
+      if (user.isActive) return user;
       else throw new ForbiddenException('you are out.');
     });
   }

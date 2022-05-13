@@ -27,12 +27,6 @@ export class AuthService {
     return this.authRepository.save(socialProfile);
   }
 
-  async findOne(id): Promise<Auth> {
-    return this.authRepository.findOneOrFail({
-      id,
-    });
-  }
-
   async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
     return this.authRepository.findOne({ provider, socialId }).then((auth) => {
       if (!auth) return this.create(provider, socialId);
@@ -69,7 +63,7 @@ export class AuthService {
       if (isInstance(err, jwt.TokenExpiredError))
         throw new UnauthorizedException('Expired');
       throw isInstance(err, jwt.JsonWebTokenError)
-        ? new BadRequestException('Wrong Token!')
+        ? new BadRequestException(err.message || 'Wrong Token Value')
         : new ImATeapotException('No Idea');
     }
   }
@@ -85,12 +79,13 @@ export class AuthService {
       if (isInstance(err, jwt.TokenExpiredError))
         throw new UnauthorizedException(err.message || 'Expired');
       throw isInstance(err, jwt.JsonWebTokenError)
-        ? new BadRequestException(err.message || 'Wrong Token')
+        ? new BadRequestException(err.message || 'Wrong Token Value')
         : new ImATeapotException('No Idea');
     }
   }
 
   parseToken(tokenString: string) {
+    if (!tokenString) throw new jwt.JsonWebTokenError('not JWT');
     if (tokenString.indexOf('bearer ') !== 0)
       throw new jwt.JsonWebTokenError('Wrong Token Type');
     return tokenString.split('bearer ')[1];
