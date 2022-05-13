@@ -9,8 +9,6 @@ import {
   Headers,
   BadRequestException,
   UnauthorizedException,
-  ServiceUnavailableException,
-  InternalServerErrorException,
   Patch,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -20,6 +18,7 @@ import { AuthService } from './auth.service';
 import { SocialTokenDto } from './dto/social-token.dto';
 import { UpdateTokenDto } from './dto/update-token.dto';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { CreateReportDto } from '../users/dto/create-report.dto';
 
 @ApiTags('auth')
 @Controller('api')
@@ -49,7 +48,9 @@ export class AuthController {
     const nickname = socialInfo['data']['kakao_account']['nickname'];
     const user = await this.userService.findOneOrCreate(
       authUser.id,
-      nickname.length >= 2 && nickname.length <= 16 ? nickname : 'NickName',
+      nickname && nickname.length >= 2 && nickname.length <= 16
+        ? nickname
+        : 'temp',
     );
     const [accessToken, refreshToken] = await this.authService.createToken(
       user,
@@ -64,13 +65,11 @@ export class AuthController {
 
   @Post('auth/refresh')
   async refresh(@Body() updateTokenDto: UpdateTokenDto) {
-    const payload = await this.authService.decodeRefreshToken(
+    const token = await this.authService.decodeRefreshToken(
       updateTokenDto.refreshToken,
     );
-    delete payload.iat;
-    delete payload.exp;
     return {
-      accessToken: await this.authService.createToken(payload),
+      accessToken: token,
     };
   }
 
@@ -102,6 +101,17 @@ export class AuthController {
     const decoded = await this.authService.decodeToken(accessToken);
     const updated = await this.userService.update(decoded.id, updateUserDto);
     if (updated['affected'] === 1) return { id: decoded.id };
+    throw new BadRequestException('Invalid Token, login required');
+  }
+
+  @Patch('user/report')
+  async report(
+    @Body() createReportDto: CreateReportDto,
+    @Headers('Authorization') accessToken: string,
+  ) {
+    const decoded = await this.authService.decodeToken(accessToken);
+    const created = await this.userService.report(decoded.id, createReportDto);
+    if (created) return { id: created.id };
     throw new BadRequestException('Invalid Token, login required');
   }
 }
