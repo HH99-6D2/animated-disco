@@ -44,7 +44,7 @@ export class AuthService {
           algorithm: 'HS256',
         }),
         jwt.sign({ ...user }, process.env.JWT_AUTH_REFRESH_SECRET, {
-          expiresIn: '10H',
+          expiresIn: '12h',
           algorithm: 'HS512',
         }),
       ]);

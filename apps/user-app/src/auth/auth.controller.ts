@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
   ServiceUnavailableException,
   InternalServerErrorException,
+  Patch,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SocialService } from '../social/social.service';
@@ -93,7 +94,7 @@ export class AuthController {
     return HttpCode(200);
   }
 
-  @Post('user/update')
+  @Patch('user/update')
   async update(
     @Body() updateUserDto: UpdateUserDto,
     @Headers('Authorization') accessToken: string,
