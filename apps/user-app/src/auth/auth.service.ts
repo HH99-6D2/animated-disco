@@ -36,7 +36,8 @@ export class AuthService {
     });
   }
 
-  async createToken(user: User): Promise<string[]> {
+  async createToken(user: User | IJwtPayLoad): Promise<string[]> {
+    delete user['isActive'];
     const prom = await new Promise((res, _) => {
       res([
         jwt.sign({ ...user }, process.env.JWT_AUTH_SECRET, {
@@ -71,10 +72,17 @@ export class AuthService {
   async decodeRefreshToken(token: string) {
     try {
       token = this.parseToken(token);
-      const prom = await new Promise((res, _) => {
+      const payload = await new Promise((res, _) => {
         res(jwt.verify(token, process.env.JWT_AUTH_REFRESH_SECRET));
-      }).then((d: IJwtPayLoad) => d);
-      return prom;
+      }).then((d: IJwtPayLoad) => {
+        delete d.exp;
+        delete d.iat;
+        return jwt.sign(d, process.env.JWT_AUTH_SECRET, {
+          expiresIn: '10m',
+          algorithm: 'HS256',
+        });
+      });
+      return payload;
     } catch (err) {
       if (isInstance(err, jwt.TokenExpiredError))
         throw new UnauthorizedException(err.message || 'Expired');
