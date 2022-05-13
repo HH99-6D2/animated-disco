@@ -67,7 +67,7 @@ export class Room extends BaseEntity {
     name:'categoryId',
     referencedColumnName:'id'
   })
-  categoryId: Category;
+  categoryId: number;
 
 
   @ManyToOne(() => RegionA, (regionA) => regionA.id)
@@ -75,7 +75,7 @@ export class Room extends BaseEntity {
     name:'regionAId',
     referencedColumnName:'id'
   })
-  regionAId: RegionA;
+  regionAId: number;
 
 
   @ManyToOne(() => RegionB, (regionB) => regionB.id)
@@ -83,5 +83,5 @@ export class Room extends BaseEntity {
     name:'regionBId',
     referencedColumnName:'id'
   })
-  regionBId: RegionB;
+  regionBId: number;
 }
