@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isInstance } from 'class-validator';
@@ -34,7 +35,7 @@ export class UsersService {
       return await this.userRepository.findOneOrFail(id);
     } catch (err) {
       throw isInstance(err, EntityNotFoundError)
-        ? new BadRequestException('User Not Found')
+        ? new NotFoundException('User Not Found')
         : new InternalServerErrorException('DB Not working');
     }
   }
