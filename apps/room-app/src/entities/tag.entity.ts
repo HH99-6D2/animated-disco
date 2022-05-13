@@ -1,3 +1,4 @@
+import { RoomsModule } from '../rooms/rooms.module';
 import {
   Entity,
   BaseEntity,
@@ -5,6 +6,7 @@ import {
   Column,
   Unique,
 } from 'typeorm';
+import { Room } from './room.entity';
 
 @Entity()
 @Unique(['name'])
