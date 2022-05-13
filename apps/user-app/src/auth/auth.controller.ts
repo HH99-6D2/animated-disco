@@ -104,7 +104,7 @@ export class AuthController {
     throw new BadRequestException('Invalid Token, login required');
   }
 
-  @Patch('user/report')
+  @Post('user/report')
   async report(
     @Body() createReportDto: CreateReportDto,
     @Headers('Authorization') accessToken: string,
