@@ -111,7 +111,7 @@ export class AuthController {
   ) {
     const decoded = await this.authService.decodeToken(accessToken);
     const created = await this.userService.report(decoded.id, createReportDto);
-    if (created) return { id: decoded.id };
+    if (created) return { id: created.id };
     throw new BadRequestException('Invalid Token, login required');
   }
 }

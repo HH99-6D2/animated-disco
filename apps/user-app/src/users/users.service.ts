@@ -1,11 +1,14 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { isInstance } from 'class-validator';
+import { EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { CreateReportDto } from './dto/create-report.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -27,7 +30,13 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    return this.userRepository.findOneOrFail(id);
+    try {
+      return await this.userRepository.findOneOrFail(id);
+    } catch (err) {
+      throw isInstance(err, EntityNotFoundError)
+        ? new BadRequestException('User Not Found')
+        : new InternalServerErrorException('DB Not working');
+    }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -40,14 +49,19 @@ export class UsersService {
     });
   }
   async report(id: number, createReportDto: CreateReportDto): Promise<Report> {
+    let is_reported: number;
     createReportDto.user = id;
-    const is_reported = await this.reportRepository.find({
+    await this.findOne(createReportDto.reportUser);
+    is_reported = await this.reportRepository.count({
+      reportUser: createReportDto.reportUser,
+      user: createReportDto.user,
+    });
+    if (is_reported) throw new ConflictException('Already reported');
+    const report = this.reportRepository.create(createReportDto);
+    const report_count = await this.reportRepository.count({
       reportUser: createReportDto.reportUser,
     });
-    if (is_reported.filter((el) => el.user === createReportDto.user))
-      throw new ConflictException('Already reported');
-    const report = this.reportRepository.create(createReportDto);
-    if (is_reported.length === 4)
+    if (report_count >= 4)
       await this.userRepository.update(createReportDto.reportUser, {
         isActive: false,
       });
