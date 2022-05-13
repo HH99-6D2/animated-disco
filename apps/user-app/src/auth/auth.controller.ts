@@ -9,8 +9,6 @@ import {
   Headers,
   BadRequestException,
   UnauthorizedException,
-  ServiceUnavailableException,
-  InternalServerErrorException,
   Patch,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -49,7 +47,9 @@ export class AuthController {
     const nickname = socialInfo['data']['kakao_account']['nickname'];
     const user = await this.userService.findOneOrCreate(
       authUser.id,
-      nickname.length >= 2 && nickname.length <= 16 ? nickname : 'NickName',
+      nickname && nickname.length >= 2 && nickname.length <= 16
+        ? nickname
+        : 'temp',
     );
     const [accessToken, refreshToken] = await this.authService.createToken(
       user,
