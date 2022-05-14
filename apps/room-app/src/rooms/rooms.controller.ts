@@ -6,10 +6,14 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { Room } from '../entities/room.entity';
+import { AuthGuard } from '../utils/auth.guard';
+import { GetUser } from '../utils/decorator/get-user.decorator';
+import { User } from '../entities/user.interface';
 
 @Controller('rooms')
 export class RoomsController {
@@ -26,8 +30,9 @@ export class RoomsController {
   }
 
   @Post()
-  createRoom(@Body() createRoomDto: CreateRoomDto): Promise<void> {
-    return this.roomsService.createRoom(createRoomDto);
+  @UseGuards(AuthGuard)
+  createRoom(@Body() createRoomDto: CreateRoomDto, @GetUser() user: User): Promise<void> {
+    return this.roomsService.createRoom(createRoomDto, user.id);
   }
 
   @Delete('/:id')

@@ -3,7 +3,7 @@ import { RoomsModule } from './rooms/rooms.module';
 import { typeORMConfig } from './configs/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LikesModule } from './likes/likes.module';
-import { LoggerMiddleware } from './middleware/logger.middleware';
+import { LoggerMiddleware } from './utils/middleware/logger.middleware';
 import { RegionsModule } from './regions/regions.module';
 import { CategoriesModule } from './categories/categories.module';
 
