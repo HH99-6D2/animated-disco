@@ -1,15 +1,13 @@
 import {
-  BadRequestException,
   ConflictException,
   ForbiddenException,
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isInstance } from 'class-validator';
-import { EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
+import { EntityNotFoundError, Raw, Repository } from 'typeorm';
 import { CreateReportDto } from './dto/create-report.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -43,29 +41,39 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     return this.userRepository.update(id, updateUserDto);
   }
+
   async findOneOrCreate(id: number, nickname: string): Promise<User> {
-    return this.userRepository.findOne(id).then((user) => {
-      if (user && !user.isActive) throw new ForbiddenException('you are out.');
+    try {
+      const user = await this.userRepository.findOne(id);
+
+      if (user) {
+        const lastWeek = new Date(Date.now() - 1000 * 60 ** 2 * 24 * 7);
+        const reported_cnt = await this.reportRepository.count({
+          reportUser: id,
+          createdDate: Raw((alias) => `${alias} > :date`, {
+            date: lastWeek,
+          }),
+        });
+        if (reported_cnt > 4) throw new ForbiddenException('you are out.');
+      }
+
       return !user ? this.create(id, nickname) : user;
-    });
+    } catch (err) {
+      throw new InternalServerErrorException('DB Not working');
+    }
   }
+
   async report(id: number, createReportDto: CreateReportDto): Promise<Report> {
-    let is_reported: number;
+    let report: Report;
+
     createReportDto.user = id;
-    await this.findOne(createReportDto.reportUser);
-    is_reported = await this.reportRepository.count({
+    report = await this.reportRepository.findOne({
       reportUser: createReportDto.reportUser,
       user: createReportDto.user,
     });
-    if (is_reported) throw new ConflictException('Already reported');
-    const report = this.reportRepository.create(createReportDto);
-    const report_count = await this.reportRepository.count({
-      reportUser: createReportDto.reportUser,
-    });
-    if (report_count >= 4)
-      await this.userRepository.update(createReportDto.reportUser, {
-        isActive: false,
-      });
+    if (report) throw new ConflictException('Already reported');
+    report = this.reportRepository.create(createReportDto);
+
     return this.reportRepository.save(report);
   }
 }

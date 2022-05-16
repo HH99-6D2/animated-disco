@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -6,6 +6,4 @@ export class User {
   id: number;
   @Column({ type: 'varchar', length: 16, nullable: true })
   nickname: string;
-  @Column({ type: 'boolean', default: true, nullable: false })
-  isActive: boolean;
 }
