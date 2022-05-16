@@ -6,6 +6,7 @@ import { LikesModule } from './likes/likes.module';
 import { LoggerMiddleware } from './utils/middleware/logger.middleware';
 import { RegionsModule } from './regions/regions.module';
 import { CategoriesModule } from './categories/categories.module';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
@@ -14,12 +15,13 @@ import { CategoriesModule } from './categories/categories.module';
     RoomsModule,
     RegionsModule,
     CategoriesModule,
+    ImagesModule
   ],
   controllers: [],
   providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('rooms', 'likes');
+    consumer.apply(LoggerMiddleware).forRoutes('rooms', 'likes', 'images');
   }
 }
