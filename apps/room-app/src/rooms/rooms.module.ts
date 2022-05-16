@@ -4,9 +4,10 @@ import { RoomsController } from './rooms.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomRepository } from './room.repository';
 import { TagRepository } from '../tags/tag.repository';
+import { RegionARepository, RegionBRepository } from '../regions/region.repository';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([RoomRepository, TagRepository])],
+  imports:[TypeOrmModule.forFeature([RoomRepository, TagRepository, RegionARepository, RegionBRepository])],
   controllers: [RoomsController],
   providers: [RoomsService],
 })
