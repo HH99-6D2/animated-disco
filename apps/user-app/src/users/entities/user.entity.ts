@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { Block } from './block.entity';
 
 @Entity()
 export class User {
@@ -6,4 +7,6 @@ export class User {
   id: number;
   @Column({ type: 'varchar', length: 16, nullable: true })
   nickname: string;
+  @OneToMany(() => Block, (block) => block.user)
+  blockUsers: Block[];
 }
