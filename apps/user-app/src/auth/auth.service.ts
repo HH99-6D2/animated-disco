@@ -45,7 +45,7 @@ export class AuthService {
           algorithm: 'HS256',
         }),
         jwt.sign({ ...user }, process.env.JWT_AUTH_REFRESH_SECRET, {
-          expiresIn: '12h',
+          expiresIn: '2d',
           algorithm: 'HS512',
         }),
       ]);
@@ -93,9 +93,8 @@ export class AuthService {
   }
 
   parseToken(tokenString: string) {
-    if (!tokenString) throw new jwt.JsonWebTokenError('not JWT');
-    if (tokenString.indexOf('bearer ') !== 0)
+    if (tokenString.indexOf('Bearer ') !== 0)
       throw new jwt.JsonWebTokenError('Wrong Token Type');
-    return tokenString.split('bearer ')[1];
+    return tokenString.split('Bearer ')[1];
   }
 }
