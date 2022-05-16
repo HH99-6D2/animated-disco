@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { Auth } from './auth/entities/auth.entity';
 import { SocialService } from './social/social.service';
 import { Report } from './users/entities/report.entity';
+import { Block } from './users/entities/block.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { Report } from './users/entities/report.entity';
       database: process.env.DATABASE_NAME,
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
-      entities: [User, Auth, Report],
+      entities: [User, Auth, Report, Block],
       synchronize: true,
       migrations: ['dist/apps/user-app/src/db/migrations/*.js'],
       cli: {
