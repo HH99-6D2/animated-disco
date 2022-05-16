@@ -10,6 +10,10 @@ import { RoomRepository } from './room.repository';
 import { TagRepository } from '../tags/tag.repository';
 import { Not } from 'typeorm';
 import { User } from '../entities/user.interface';
+import {
+  RegionARepository,
+  RegionBRepository,
+} from '../regions/region.repository';
 
 @Injectable()
 export class RoomsService {
@@ -17,6 +21,8 @@ export class RoomsService {
     @InjectRepository(RoomRepository)
     private roomRepository: RoomRepository,
     private tagRepository: TagRepository,
+    private regionARepository: RegionARepository,
+    private regionBRepository: RegionBRepository,
   ) {}
 
   async getAllRooms(): Promise<Room[]> {
@@ -47,13 +53,25 @@ export class RoomsService {
     createRoomDto: CreateRoomDto,
     userId: number,
   ): Promise<void> {
-    const { tags } = createRoomDto;
+    const { tags, regionAName, regionBName } = createRoomDto;
+
     try {
+      const regionA = await this.regionARepository.findOne({
+        name: regionAName,
+      });
+
+      const regionB = await this.regionBRepository.findOne({
+        regionAId: regionA.id,
+        name: regionBName,
+      });
+
       const roomTags = await this.tagRepository.findOrInsert(tags);
 
       const room = this.roomRepository.create({
         ...createRoomDto,
         userId,
+        regionAId: regionA.id,
+        regionBId: regionB.id,
         status: new Date(createRoomDto.startDate) <= new Date() ? 1 : 0,
         tags: roomTags,
       });
