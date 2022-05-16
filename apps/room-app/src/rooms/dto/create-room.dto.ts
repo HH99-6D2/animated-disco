@@ -28,10 +28,10 @@ export class CreateRoomDto {
   imageUrl: string;
 
   @IsNotEmpty()
-  regionAId: number;
+  regionAName: string;
 
   @IsNotEmpty()
-  regionBId: number;
+  regionBName: string;
 
   @IsNotEmpty()
   tags: String[];
