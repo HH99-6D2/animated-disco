@@ -12,6 +12,7 @@ import * as AWS from 'aws-sdk';
 import { ConfigModule } from '@nestjs/config';
 import { AuthGuard } from '../utils/auth.guard';
 import { GetUser } from '../utils/decorator/get-user.decorator';
+import { User } from '../entities/user.interface';
 
 const s3 = new AWS.S3();
 AWS.config.update({
@@ -38,7 +39,7 @@ export class ImagesController {
       }),
     }),
   )
-  async uploadImage(@UploadedFiles() files: Express.Multer.File, @GetUser()) {
+  async uploadImage(@UploadedFiles() files: Express.Multer.File, @GetUser() user: User) {
     return this.imagesService.uploadImage(files);
   }
 }
