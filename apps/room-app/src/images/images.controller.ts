@@ -28,7 +28,7 @@ export class ImagesController {
   @Post()
   @UseGuards(AuthGuard)
   @UseInterceptors(
-    FilesInterceptor('images', 3, {
+    FilesInterceptor('image', 3, {
       storage: multerS3({
         s3: s3,
         bucket: process.env.AWS_S3_BUCKET_NAME,
