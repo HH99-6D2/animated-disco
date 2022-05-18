@@ -6,9 +6,10 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { Auth } from './auth/entities/auth.entity';
 import { SocialService } from './social/social.service';
-import { Block } from './users/entities/block.entity';
 import { ReportModule } from './report/report.module';
 import { Report } from './report/entities/report.entity';
+import { BlockModule } from './block/block.module';
+import { Block } from './block/entities/block.entity';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { Report } from './report/entities/report.entity';
     UsersModule,
     AuthModule,
     ReportModule,
+    BlockModule,
   ],
   controllers: [
     //   UserAppController

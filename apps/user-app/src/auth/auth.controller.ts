@@ -12,17 +12,19 @@ import {
   Res,
   HttpStatus,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
 import { SocialService } from '../social/social.service';
 import { UsersService } from '../users/users.service';
-import { AuthService } from './auth.service';
+import { BlockService } from '../block/block.service';
+import { ReportService } from '../report/report.service';
 import { SocialTokenDto } from './dto/social-token.dto';
 import { UpdateTokenDto } from './dto/update-token.dto';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { CreateReportDto } from '../report/dto/create-report.dto';
-import { CreateBlockDto } from '../users/dto/create-block.dto';
-import { Response } from 'express';
-import { ReportService } from '../report/report.service';
+import { CreateBlockDto } from '../block/dto/create-block.dto';
+import { DeleteBlockDto } from '../block/dto/delete-block.dto';
 
 @ApiTags('auth')
 @Controller('api')
@@ -32,6 +34,7 @@ export class AuthController {
     private readonly userService: UsersService,
     private readonly reportService: ReportService,
     private readonly socialService: SocialService,
+    private readonly blockService: BlockService,
   ) {}
 
   @Get('auth/login')
@@ -137,24 +140,18 @@ export class AuthController {
     @Headers('Authorization') accessToken: string,
   ) {
     const decoded = await this.authService.decodeToken(accessToken);
-    const created = await this.userService.createBlock(
-      decoded.id,
-      createBlockDto,
-    );
+    const created = await this.blockService.create(decoded.id, createBlockDto);
     if (created) return res.status(201).json({ id: created.id });
   }
 
   @Delete('user/block')
   async unblock(
     @Res() res: Response,
-    @Body() createBlockDto: CreateBlockDto,
+    @Body() deleteBlockDto: DeleteBlockDto,
     @Headers('Authorization') accessToken: string,
   ) {
     const decoded = await this.authService.decodeToken(accessToken);
-    const deleted = await this.userService.deleteBlock(
-      decoded.id,
-      createBlockDto,
-    );
+    const deleted = await this.blockService.remove(decoded.id, deleteBlockDto);
     if (deleted.affected) return res.status(HttpStatus.OK).send();
   }
   @Get('user/info')
