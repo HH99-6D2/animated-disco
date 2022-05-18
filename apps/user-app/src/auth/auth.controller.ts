@@ -72,7 +72,6 @@ export class AuthController {
         accessToken,
         refreshToken,
       });
-    throw new ImATeapotException('Unknown Error');
   }
 
   @Post('auth/refresh')
@@ -81,7 +80,6 @@ export class AuthController {
       updateTokenDto.refreshToken,
     );
     if (token) return res.status(201).json({ accessToken: token });
-    throw new ImATeapotException('Unknown Error');
   }
 
   @Post('auth/signout')
@@ -130,7 +128,6 @@ export class AuthController {
       createReportDto,
     );
     if (created) return res.status(201).json({ id: created.id });
-    throw new ImATeapotException('Unknown Error, Not created');
   }
 
   @Post('user/block')
@@ -145,7 +142,6 @@ export class AuthController {
       createBlockDto,
     );
     if (created) return res.status(201).json({ id: created.id });
-    throw new ImATeapotException('Unknown Error, Not created');
   }
 
   @Delete('user/block')
@@ -160,7 +156,6 @@ export class AuthController {
       createBlockDto,
     );
     if (deleted.affected) return res.status(HttpStatus.OK).send();
-    throw new ImATeapotException('Unknown Error, Not deleted');
   }
   @Get('user/info')
   async info(
@@ -171,6 +166,5 @@ export class AuthController {
     const user = await this.userService.findOne(decoded.id);
     user.blockUsers = user.blockUsers.map((blockInfo) => blockInfo.user['id']);
     if (user) return res.status(200).json(user);
-    throw new ImATeapotException('Unknown Error');
   }
 }
