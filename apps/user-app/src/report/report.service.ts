@@ -7,12 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isInstance } from 'class-validator';
-import {
-  EntityNotFoundError,
-  QueryFailedError,
-  Raw,
-  Repository,
-} from 'typeorm';
+import { QueryFailedError, Raw, Repository } from 'typeorm';
 import { CreateReportDto } from './dto/create-report.dto';
 import { Report } from './entities/report.entity';
 

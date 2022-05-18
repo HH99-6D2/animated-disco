@@ -51,7 +51,9 @@ export class AuthController {
   ) {
     if (error)
       throw new UnauthorizedException('SocialProvider Agreement Exception');
-    const socialToken = await this.socialService.getToken(code);
+    const [socialToken, socialRefreshToken] = await this.socialService.getToken(
+      code,
+    );
     const socialInfo = await this.socialService.getUserInfo(socialToken);
     const authUser = await this.authService.findOneOrCreate(
       1,
@@ -71,17 +73,19 @@ export class AuthController {
     if (accessToken && refreshToken)
       return res.status(201).json({
         user,
-        socialToken: socialToken,
         accessToken,
         refreshToken,
+        socialToken: socialToken,
+        socialRefreshToken: socialRefreshToken,
       });
   }
 
   @Post('auth/refresh')
   async refresh(@Res() res: Response, @Body() updateTokenDto: UpdateTokenDto) {
-    const token = await this.authService.decodeRefreshToken(
-      updateTokenDto.refreshToken,
-    );
+    const token =
+      updateTokenDto.refreshToken.length != 56
+        ? await this.authService.decodeRefreshToken(updateTokenDto.refreshToken)
+        : await this.socialService.refreshToken(updateTokenDto.refreshToken);
     if (token) return res.status(201).json({ accessToken: token });
   }
 
@@ -91,8 +95,9 @@ export class AuthController {
     @Headers('Authorization') accessToken: string,
     @Body() socialTokenDto: SocialTokenDto,
   ) {
-    await this.authService.decodeToken(accessToken);
+    const { id } = await this.authService.decodeToken(accessToken);
     await this.socialService.unlink(socialTokenDto.accessToken);
+    await this.authService.remove(id);
     return res.status(200).send();
   }
 
@@ -154,6 +159,7 @@ export class AuthController {
     const deleted = await this.blockService.remove(decoded.id, deleteBlockDto);
     if (deleted.affected) return res.status(HttpStatus.OK).send();
   }
+
   @Get('user/info')
   async info(
     @Res() res: Response,

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotAcceptableException,
   ServiceUnavailableException,
@@ -24,7 +25,11 @@ export class SocialService {
         },
       });
     } catch (err) {
-      throw new ServiceUnavailableException('social Service UnAvailable');
+      if (err['code'] === 'ERR_BAD_REQUEST') {
+        throw new BadRequestException('Token Invalid or Expired');
+      } else {
+        throw new ServiceUnavailableException('social Service UnAvailable');
+      }
     }
   }
 
@@ -44,11 +49,43 @@ export class SocialService {
           code: code,
         }),
       });
-      return socialToken['data']['access_token'];
+      return [
+        socialToken['data']['access_token'],
+        socialToken['data']['refresh_token'],
+      ];
     } catch (err) {
-      throw new ServiceUnavailableException('social Service UnAvailable');
+      if (err['code'] === 'ERR_BAD_REQUEST') {
+        throw new BadRequestException('Token Invalid or Expired');
+      } else {
+        throw new ServiceUnavailableException('social Service UnAvailable');
+      }
     }
   }
+  async refreshToken(token: string) {
+    try {
+      const socialToken = await axios({
+        method: 'POST',
+        url: 'https://kauth.kakao.com/oauth/token',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        data: stringify({
+          grant_type: 'refresh_token',
+          client_id: process.env.CLIENT_ID,
+          client_secret: process.env.CLIENT_SECRET,
+          refresh_token: token,
+        }),
+      });
+      return socialToken['data']['access_token'];
+    } catch (err) {
+      if (err['code'] === 'ERR_BAD_REQUEST') {
+        throw new BadRequestException('Token Invalid or Expired');
+      } else {
+        throw new ServiceUnavailableException('social Service UnAvailable');
+      }
+    }
+  }
+
   async logout(socialToken: string) {
     try {
       return await axios({
@@ -59,7 +96,11 @@ export class SocialService {
         },
       });
     } catch (err) {
-      throw new ServiceUnavailableException('social Service UnAvailable');
+      if (err['code'] === 'ERR_BAD_REQUEST') {
+        throw new BadRequestException('Token Invalid or Expired');
+      } else {
+        throw new ServiceUnavailableException('social Service UnAvailable');
+      }
     }
   }
   async unlink(socialToken: string) {
@@ -72,8 +113,11 @@ export class SocialService {
         },
       });
     } catch (err) {
-      throw new ServiceUnavailableException('social Service UnAvailable');
+      if (err['code'] === 'ERR_BAD_REQUEST') {
+        throw new BadRequestException('Token Invalid or Expired');
+      } else {
+        throw new ServiceUnavailableException('social Service UnAvailable');
+      }
     }
-    // TODO Unlink Target User on db.
   }
 }
