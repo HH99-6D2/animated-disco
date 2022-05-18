@@ -28,23 +28,26 @@ export class AuthService {
   }
 
   async findOneOrCreate(provider: number, socialId: string): Promise<Auth> {
-    return this.authRepository.findOne({ provider, socialId }).then((auth) => {
-      if (!auth) return this.create(provider, socialId);
-      auth.unlinkedAt = null;
-      this.authRepository.save(auth);
-      return auth;
-    });
+    return this.authRepository
+      .findOne({ where: { socialId, provider }, withDeleted: true })
+      .then(async (auth) => {
+        if (!auth) return this.create(provider, socialId);
+        if (auth.unlinkedAt) {
+          auth.unlinkedAt = null;
+          await this.authRepository.save(auth);
+        }
+        return auth;
+      });
   }
 
   async createToken(user: User | IJwtPayLoad): Promise<string[]> {
-    delete user['isActive'];
     const prom = await new Promise((res, _) => {
       res([
-        jwt.sign({ ...user }, process.env.JWT_AUTH_SECRET, {
+        jwt.sign({ id: user.id }, process.env.JWT_AUTH_SECRET, {
           expiresIn: '10m',
           algorithm: 'HS256',
         }),
-        jwt.sign({ ...user }, process.env.JWT_AUTH_REFRESH_SECRET, {
+        jwt.sign({ id: user.id }, process.env.JWT_AUTH_REFRESH_SECRET, {
           expiresIn: '2d',
           algorithm: 'HS512',
         }),
@@ -75,9 +78,7 @@ export class AuthService {
       const payload = await new Promise((res, _) => {
         res(jwt.verify(token, process.env.JWT_AUTH_REFRESH_SECRET));
       }).then((d: IJwtPayLoad) => {
-        delete d.exp;
-        delete d.iat;
-        return jwt.sign(d, process.env.JWT_AUTH_SECRET, {
+        return jwt.sign({ id: d.id }, process.env.JWT_AUTH_SECRET, {
           expiresIn: '30m',
           algorithm: 'HS256',
         });
@@ -90,6 +91,10 @@ export class AuthService {
         ? new BadRequestException(err.message || 'Wrong Token Value')
         : new ImATeapotException('No Idea');
     }
+  }
+
+  async remove(id: number) {
+    return this.authRepository.softDelete(id);
   }
 
   parseToken(tokenString: string) {
