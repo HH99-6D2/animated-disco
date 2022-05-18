@@ -78,7 +78,7 @@ export class AuthService {
         delete d.exp;
         delete d.iat;
         return jwt.sign(d, process.env.JWT_AUTH_SECRET, {
-          expiresIn: '10m',
+          expiresIn: '30m',
           algorithm: 'HS256',
         });
       });

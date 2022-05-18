@@ -4,7 +4,6 @@ import {
   Query,
   Post,
   Body,
-  HttpCode,
   Headers,
   UnauthorizedException,
   Patch,
@@ -20,9 +19,10 @@ import { AuthService } from './auth.service';
 import { SocialTokenDto } from './dto/social-token.dto';
 import { UpdateTokenDto } from './dto/update-token.dto';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
-import { CreateReportDto } from '../users/dto/create-report.dto';
+import { CreateReportDto } from '../report/dto/create-report.dto';
 import { CreateBlockDto } from '../users/dto/create-block.dto';
 import { Response } from 'express';
+import { ReportService } from '../report/report.service';
 
 @ApiTags('auth')
 @Controller('api')
@@ -30,6 +30,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UsersService,
+    private readonly reportService: ReportService,
     private readonly socialService: SocialService,
   ) {}
 
@@ -60,6 +61,7 @@ export class AuthController {
         ? nickname
         : 'temp',
     );
+    this.reportService.isValid(user.id);
     const [accessToken, refreshToken] = await this.authService.createToken(
       user,
     );
@@ -123,7 +125,10 @@ export class AuthController {
     @Headers('Authorization') accessToken: string,
   ) {
     const decoded = await this.authService.decodeToken(accessToken);
-    const created = await this.userService.report(decoded.id, createReportDto);
+    const created = await this.reportService.create(
+      decoded.id,
+      createReportDto,
+    );
     if (created) return res.status(201).json({ id: created.id });
     throw new ImATeapotException('Unknown Error, Not created');
   }
