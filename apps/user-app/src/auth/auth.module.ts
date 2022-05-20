@@ -7,6 +7,7 @@ import { SocialService } from '../social/social.service';
 import { UsersModule } from '../users/users.module';
 import { ReportModule } from '../report/report.module';
 import { BlockModule } from '../block/block.module';
+import { S3Service } from '../s3/s3.service';
 
 @Module({
   imports: [
@@ -16,6 +17,6 @@ import { BlockModule } from '../block/block.module';
     BlockModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, SocialService],
+  providers: [AuthService, SocialService, S3Service],
 })
 export class AuthModule {}

@@ -11,11 +11,15 @@ import {
   Delete,
   Res,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SocialService } from '../social/social.service';
+import { S3Service } from '../s3/s3.service';
 import { UsersService } from '../users/users.service';
 import { BlockService } from '../block/block.service';
 import { ReportService } from '../report/report.service';
@@ -25,6 +29,7 @@ import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { CreateReportDto } from '../report/dto/create-report.dto';
 import { CreateBlockDto } from '../block/dto/create-block.dto';
 import { DeleteBlockDto } from '../block/dto/delete-block.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('auth')
 @Controller('api')
@@ -35,6 +40,7 @@ export class AuthController {
     private readonly reportService: ReportService,
     private readonly socialService: SocialService,
     private readonly blockService: BlockService,
+    private readonly s3Service: S3Service,
   ) {}
 
   @Get('auth/login')
@@ -122,6 +128,21 @@ export class AuthController {
     const updated = await this.userService.update(decoded.id, updateUserDto);
     if (updated.affected === 1) return res.status(HttpStatus.OK).send();
     throw new ImATeapotException('Unknown Error, Not created');
+  }
+
+  @Post('user/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadedFile(
+    @Res() res: Response,
+    @UploadedFile() file: Express.Multer.File,
+    @Headers('Authorization') accessToken: string,
+  ) {
+    if (file.size >= 3000000)
+      throw new BadRequestException('File bigger than 3MB');
+    const decoded = await this.authService.decodeToken(accessToken);
+
+    const url = await this.s3Service.uploadFile(file, decoded.id);
+    return res.status(HttpStatus.CREATED).send(url);
   }
 
   @Post('user/report')
