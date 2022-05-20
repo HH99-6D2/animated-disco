@@ -10,6 +10,7 @@ import { ReportModule } from './report/report.module';
 import { Report } from './report/entities/report.entity';
 import { BlockModule } from './block/block.module';
 import { Block } from './block/entities/block.entity';
+import { S3Service } from './s3/s3.service';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { Block } from './block/entities/block.entity';
   providers: [
     //   UserAppService
     SocialService,
+    S3Service,
   ],
 })
 export class UserAppModule {}
