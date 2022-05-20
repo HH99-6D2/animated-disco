@@ -44,7 +44,7 @@ export class AuthService {
     const prom = await new Promise((res, _) => {
       res([
         jwt.sign({ id: user.id }, process.env.JWT_AUTH_SECRET, {
-          expiresIn: '10m',
+          expiresIn: '30m',
           algorithm: 'HS256',
         }),
         jwt.sign({ id: user.id }, process.env.JWT_AUTH_REFRESH_SECRET, {

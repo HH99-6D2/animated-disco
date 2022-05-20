@@ -68,7 +68,7 @@ export class AuthController {
     const nickname = socialInfo['data']['kakao_account']['nickname'];
     const user = await this.userService.findOneOrCreate(
       authUser.id,
-      nickname && nickname.length >= 2 && nickname.length <= 16
+      nickname && nickname.length >= 2 && nickname.length <= 24
         ? nickname
         : 'temp',
     );
