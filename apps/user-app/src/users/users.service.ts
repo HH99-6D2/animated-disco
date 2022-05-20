@@ -1,20 +1,11 @@
 import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isInstance } from 'class-validator';
-import {
-  DeleteResult,
-  EntityNotFoundError,
-  Raw,
-  Repository,
-  UpdateResult,
-} from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';

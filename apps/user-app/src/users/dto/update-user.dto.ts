@@ -5,11 +5,11 @@ export class UpdateUserDto {
   @ApiProperty({
     description: 'NickName of user which can be temporarily updated.',
     minLength: 2,
-    maxLength: 16,
+    maxLength: 24,
     nullable: false,
   })
   @IsString()
   @MinLength(2)
-  @MaxLength(16)
+  @MaxLength(24)
   nickname: string;
 }

@@ -44,7 +44,7 @@ export class AuthService {
     const prom = await new Promise((res, _) => {
       res([
         jwt.sign({ id: user.id }, process.env.JWT_AUTH_SECRET, {
-          expiresIn: '10m',
+          expiresIn: '30m',
           algorithm: 'HS256',
         }),
         jwt.sign({ id: user.id }, process.env.JWT_AUTH_REFRESH_SECRET, {
@@ -57,8 +57,8 @@ export class AuthService {
   }
 
   async decodeToken(token: string) {
+    token = this.parseToken(token);
     try {
-      token = this.parseToken(token);
       const prom = await new Promise((res, _) => {
         res(jwt.verify(token, process.env.JWT_AUTH_SECRET));
       }).then((d: IJwtPayLoad) => d);
@@ -73,8 +73,8 @@ export class AuthService {
   }
 
   async decodeRefreshToken(token: string) {
+    token = this.parseToken(token);
     try {
-      token = this.parseToken(token);
       const payload = await new Promise((res, _) => {
         res(jwt.verify(token, process.env.JWT_AUTH_REFRESH_SECRET));
       }).then((d: IJwtPayLoad) => {
@@ -98,8 +98,13 @@ export class AuthService {
   }
 
   parseToken(tokenString: string) {
-    if (tokenString.indexOf('Bearer ') !== 0)
-      throw new jwt.JsonWebTokenError('Wrong Token Type');
+    let noBearer = false;
+    try {
+      noBearer = tokenString.indexOf('Bearer ') !== 0;
+    } catch (err) {
+      throw new UnauthorizedException('no Auth Included');
+    }
+    if (noBearer) throw new jwt.JsonWebTokenError('Wrong Token Type');
     return tokenString.split('Bearer ')[1];
   }
 }
