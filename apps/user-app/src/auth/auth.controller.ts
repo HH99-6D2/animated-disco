@@ -7,7 +7,6 @@ import {
   Headers,
   UnauthorizedException,
   Patch,
-  ImATeapotException,
   Delete,
   Res,
   HttpStatus,
@@ -125,9 +124,12 @@ export class AuthController {
     @Headers('Authorization') accessToken: string,
   ) {
     const decoded = await this.authService.decodeToken(accessToken);
-    const updated = await this.userService.update(decoded.id, updateUserDto);
-    if (updated.affected === 1) return res.status(HttpStatus.OK).send();
-    throw new ImATeapotException('Unknown Error, Not created');
+    await this.userService.update(decoded.id, updateUserDto);
+    return res.status(HttpStatus.OK).send();
+    /* NoContent is better (WIKI)
+    The HTTP 204 No Content success status response code indicates that a request has succeeded,
+    but that the client doesn't need to navigate away from its current page. 
+    */
   }
 
   @Post('user/upload')
