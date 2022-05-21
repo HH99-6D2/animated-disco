@@ -4,8 +4,8 @@ import { Upload } from '@aws-sdk/lib-storage';
 
 @Injectable()
 export class S3Service {
-  AWS_S3_BUCKET = process.env.AWS_S3_BUCKET;
-  s3 = new S3(
+  private readonly AWS_S3_BUCKET = process.env.AWS_S3_BUCKET;
+  private readonly s3 = new S3(
     {
       credentials: {
         accessKeyId: process.env.AWS_S3_ACCESS_KEY,
@@ -27,12 +27,13 @@ export class S3Service {
     return this.s3_upload(
       file.buffer,
       this.AWS_S3_BUCKET,
-      `${id}/${originalname}`,
+      `${id}/${Date.now()}-${originalname}`,
       file.mimetype,
     );
   }
 
   async s3_upload(file, bucket, name, mimetype) {
+    console.log(name);
     const params = {
       Bucket: bucket,
       Key: String(name),
