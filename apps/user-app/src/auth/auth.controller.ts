@@ -141,8 +141,8 @@ export class AuthController {
     if (file.size > 3000000)
       throw new BadRequestException('FILE BIGGER THAN 3mb');
     const decoded = await this.authService.decodeToken(accessToken);
-    const url = await this.s3Service.uploadFile(file, 21);
-    return res.status(HttpStatus.CREATED).send(url);
+    const url = await this.s3Service.uploadFile(file, decoded.id);
+    return res.status(HttpStatus.CREATED).json({ url });
   }
 
   @Post('user/report')

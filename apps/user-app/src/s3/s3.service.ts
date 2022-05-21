@@ -11,12 +11,14 @@ export class S3Service {
         accessKeyId: process.env.AWS_S3_ACCESS_KEY,
         secretAccessKey: process.env.AWS_S3_SECRET_KEY,
       },
+      region: 'ap-northeast-2',
     } ||
       new S3Client({
         credentials: {
           accessKeyId: process.env.AWS_S3_ACCESS_KEY,
           secretAccessKey: process.env.AWS_S3_SECRET_KEY,
         },
+        region: 'ap-northeast-2',
       }),
   );
 
