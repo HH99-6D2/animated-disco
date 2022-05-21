@@ -137,11 +137,11 @@ export class AuthController {
     @UploadedFile() file: Express.Multer.File,
     @Headers('Authorization') accessToken: string,
   ) {
-    if (file.size >= 3000000)
-      throw new BadRequestException('File bigger than 3MB');
+    if (!file) throw new BadRequestException('NO FILE INCLUDED');
+    if (file.size > 3000000)
+      throw new BadRequestException('FILE BIGGER THAN 3mb');
     const decoded = await this.authService.decodeToken(accessToken);
-
-    const url = await this.s3Service.uploadFile(file, decoded.id);
+    const url = await this.s3Service.uploadFile(file, 21);
     return res.status(HttpStatus.CREATED).send(url);
   }
 
