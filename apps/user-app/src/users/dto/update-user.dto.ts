@@ -1,4 +1,5 @@
 import {
+  IsJWT,
   IsNumberString,
   IsOptional,
   IsString,

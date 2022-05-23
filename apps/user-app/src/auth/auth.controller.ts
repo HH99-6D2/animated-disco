@@ -75,19 +75,19 @@ export class AuthController {
     const [accessToken, refreshToken] = await this.authService.createToken(
       user,
     );
-    if (accessToken && refreshToken)
-      return res.status(201).json({
-        user: {
-          id: user.id,
-          nickname: user.nickname,
-          cType: user.cType,
-          blockUsers: user.blockUsers,
-        },
-        accessToken,
-        refreshToken,
-        socialToken: socialToken,
-        socialRefreshToken: socialRefreshToken,
-      });
+    await this.authService.update(authUser.id, refreshToken);
+    return res.status(201).json({
+      user: {
+        id: user.id,
+        nickname: user.nickname,
+        cType: user.cType,
+        blockUsers: user.blockUsers,
+      },
+      accessToken,
+      refreshToken,
+      socialToken: socialToken,
+      socialRefreshToken: socialRefreshToken,
+    });
   }
 
   @Post('auth/refresh')
@@ -196,6 +196,14 @@ export class AuthController {
     const decoded = await this.authService.decodeToken(accessToken);
     const user = await this.userService.findOne(decoded.id);
     user.blockUsers = user.blockUsers.map((blockInfo) => blockInfo.user['id']);
-    if (user) return res.status(200).json(user);
+    if (user)
+      return res
+        .status(200)
+        .json({
+          id: user.id,
+          blockUsers: user.blockUsers,
+          cType: user.cType,
+          nickname: user.nickname,
+        });
   }
 }

@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { Auth } from './entities/auth.entity';
 import * as jwt from 'jsonwebtoken';
@@ -40,6 +40,10 @@ export class AuthService {
       });
   }
 
+  async update(id: number, refreshToken: string): Promise<UpdateResult> {
+    return this.authRepository.update(id, { refreshToken });
+  }
+
   async createToken(user: User | IJwtPayLoad): Promise<string[]> {
     const prom = await new Promise((res, _) => {
       res([
@@ -72,12 +76,20 @@ export class AuthService {
     }
   }
 
+  async findOneOrFail(id: number) {
+    return this.authRepository.findOneOrFail(id);
+  }
   async decodeRefreshToken(token: string) {
     token = this.parseToken(token);
     try {
       const payload = await new Promise((res, _) => {
         res(jwt.verify(token, process.env.JWT_AUTH_REFRESH_SECRET));
-      }).then((d: IJwtPayLoad) => {
+      }).then(async (d: IJwtPayLoad) => {
+        const { refreshToken } = await this.findOneOrFail(d.id);
+        if (refreshToken !== token)
+          throw new UnauthorizedException(
+            'RefreshToken Invalid, please login back.',
+          );
         return jwt.sign({ id: d.id }, process.env.JWT_AUTH_SECRET, {
           expiresIn: '30m',
           algorithm: 'HS256',
@@ -86,10 +98,12 @@ export class AuthService {
       return payload;
     } catch (err) {
       if (isInstance(err, jwt.TokenExpiredError))
-        throw new UnauthorizedException(err.message || 'Expired');
+        throw new UnauthorizedException(
+          err.message || 'Expired, login back required',
+        );
       throw isInstance(err, jwt.JsonWebTokenError)
         ? new BadRequestException(err.message || 'Wrong Token Value')
-        : new ImATeapotException('No Idea');
+        : err;
     }
   }
 
