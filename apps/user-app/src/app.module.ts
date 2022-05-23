@@ -34,13 +34,7 @@ import { S3Service } from './s3/s3.service';
     ReportModule,
     BlockModule,
   ],
-  controllers: [
-    //   UserAppController
-  ],
-  providers: [
-    //   UserAppService
-    SocialService,
-    S3Service,
-  ],
+  controllers: [],
+  providers: [SocialService, S3Service],
 })
 export class UserAppModule {}
