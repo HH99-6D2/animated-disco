@@ -111,14 +111,15 @@ export class AuthController {
     return res.status(200).send();
   }
 
-  @Post('auth/logout')
+  @Patch('auth/logout')
   async logout(
     @Res() res: Response,
     @Headers('Authorization') accessToken: string,
     @Body() socialTokenDto: SocialTokenDto,
   ) {
-    await this.authService.decodeToken(accessToken);
+    const { id } = await this.authService.decodeToken(accessToken);
     await this.socialService.logout(socialTokenDto.accessToken);
+    await this.authService.update(id, ''); // Make Token inactive
     return res.status(200).send();
   }
 
@@ -197,13 +198,11 @@ export class AuthController {
     const user = await this.userService.findOne(decoded.id);
     user.blockUsers = user.blockUsers.map((blockInfo) => blockInfo.user['id']);
     if (user)
-      return res
-        .status(200)
-        .json({
-          id: user.id,
-          blockUsers: user.blockUsers,
-          cType: user.cType,
-          nickname: user.nickname,
-        });
+      return res.status(200).json({
+        id: user.id,
+        blockUsers: user.blockUsers,
+        cType: user.cType,
+        nickname: user.nickname,
+      });
   }
 }

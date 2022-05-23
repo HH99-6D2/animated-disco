@@ -41,7 +41,9 @@ export class AuthService {
   }
 
   async update(id: number, refreshToken: string): Promise<UpdateResult> {
-    return this.authRepository.update(id, { refreshToken });
+    return this.authRepository.update(id, {
+      refreshToken: refreshToken || null,
+    });
   }
 
   async createToken(user: User | IJwtPayLoad): Promise<string[]> {
