@@ -9,4 +9,6 @@ export class User {
   nickname: string;
   @OneToMany(() => Block, (block) => block.user)
   blockUsers: Block[];
+  @Column({ type: 'tinyint', nullable: true, unsigned: true })
+  cType: number;
 }
