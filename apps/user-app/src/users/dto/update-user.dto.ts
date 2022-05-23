@@ -1,7 +1,6 @@
 import {
-  IsNumber,
+  IsNumberString,
   IsOptional,
-  IsPositive,
   IsString,
   MaxLength,
   MinLength,
@@ -19,14 +18,14 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(2)
   @MaxLength(24)
-  nickname?: string;
+  nickname: string;
 
   @ApiProperty({
     description: 'Character type of user. defaults to null, Positive only',
     nullable: true,
   })
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
-  cType?: number;
+  @IsNumberString()
+  @MaxLength(1)
+  cType: string;
 }

@@ -69,7 +69,7 @@ export class AuthController {
       authUser.id,
       nickname && nickname.length >= 2 && nickname.length <= 24
         ? nickname
-        : 'temp',
+        : null,
     );
     this.reportService.isValid(user.id);
     const [accessToken, refreshToken] = await this.authService.createToken(
@@ -77,7 +77,12 @@ export class AuthController {
     );
     if (accessToken && refreshToken)
       return res.status(201).json({
-        user,
+        user: {
+          id: user.id,
+          nickname: user.nickname,
+          cType: user.cType,
+          blockUsers: user.blockUsers,
+        },
         accessToken,
         refreshToken,
         socialToken: socialToken,
@@ -117,7 +122,7 @@ export class AuthController {
     return res.status(200).send();
   }
 
-  @Patch('user/update')
+  @Patch('user')
   async update(
     @Res() res: Response,
     @Body() updateUserDto: UpdateUserDto,
