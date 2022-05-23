@@ -1,4 +1,10 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsNumberString,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -8,8 +14,18 @@ export class UpdateUserDto {
     maxLength: 24,
     nullable: false,
   })
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(24)
   nickname: string;
+
+  @ApiProperty({
+    description: 'Character type of user. defaults to null, Positive only',
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumberString()
+  @MaxLength(1)
+  cType: string;
 }
