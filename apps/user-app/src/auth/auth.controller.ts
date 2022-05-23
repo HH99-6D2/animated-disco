@@ -131,7 +131,7 @@ export class AuthController {
   ) {
     const decoded = await this.authService.decodeToken(accessToken);
     await this.userService.update(decoded.id, updateUserDto);
-    return res.status(HttpStatus.OK).send();
+    return res.status(HttpStatus.CREATED).json({ id: decoded.id });
     /* NoContent is better (WIKI)
     The HTTP 204 No Content success status response code indicates that a request has succeeded,
     but that the client doesn't need to navigate away from its current page. 
