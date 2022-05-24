@@ -69,20 +69,25 @@ export class AuthController {
       authUser.id,
       nickname && nickname.length >= 2 && nickname.length <= 24
         ? nickname
-        : 'temp',
+        : null,
     );
     this.reportService.isValid(user.id);
     const [accessToken, refreshToken] = await this.authService.createToken(
       user,
     );
-    if (accessToken && refreshToken)
-      return res.status(201).json({
-        user,
-        accessToken,
-        refreshToken,
-        socialToken: socialToken,
-        socialRefreshToken: socialRefreshToken,
-      });
+    await this.authService.update(authUser.id, refreshToken);
+    return res.status(201).json({
+      user: {
+        id: user.id,
+        nickname: user.nickname,
+        cType: user.cType,
+        blockUsers: user.blockUsers,
+      },
+      accessToken,
+      refreshToken,
+      socialToken: socialToken,
+      socialRefreshToken: socialRefreshToken,
+    });
   }
 
   @Post('auth/refresh')
@@ -106,18 +111,19 @@ export class AuthController {
     return res.status(200).send();
   }
 
-  @Post('auth/logout')
+  @Patch('auth/logout')
   async logout(
     @Res() res: Response,
     @Headers('Authorization') accessToken: string,
     @Body() socialTokenDto: SocialTokenDto,
   ) {
-    await this.authService.decodeToken(accessToken);
+    const { id } = await this.authService.decodeToken(accessToken);
     await this.socialService.logout(socialTokenDto.accessToken);
+    await this.authService.update(id, ''); // Make Token inactive
     return res.status(200).send();
   }
 
-  @Patch('user/update')
+  @Patch('user')
   async update(
     @Res() res: Response,
     @Body() updateUserDto: UpdateUserDto,
@@ -125,7 +131,7 @@ export class AuthController {
   ) {
     const decoded = await this.authService.decodeToken(accessToken);
     await this.userService.update(decoded.id, updateUserDto);
-    return res.status(HttpStatus.OK).send();
+    return res.status(HttpStatus.CREATED).json({ id: decoded.id });
     /* NoContent is better (WIKI)
     The HTTP 204 No Content success status response code indicates that a request has succeeded,
     but that the client doesn't need to navigate away from its current page. 
@@ -191,6 +197,12 @@ export class AuthController {
     const decoded = await this.authService.decodeToken(accessToken);
     const user = await this.userService.findOne(decoded.id);
     user.blockUsers = user.blockUsers.map((blockInfo) => blockInfo.user['id']);
-    if (user) return res.status(200).json(user);
+    if (user)
+      return res.status(200).json({
+        id: user.id,
+        blockUsers: user.blockUsers,
+        cType: user.cType,
+        nickname: user.nickname,
+      });
   }
 }
