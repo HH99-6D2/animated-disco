@@ -51,7 +51,7 @@ export class S3Service {
     });
     try {
       await parallelUpload3.done();
-      return `https://animateduser.s3.ap-northeast-2.amazone.com/${name}`;
+      return `https://animateduser.s3.ap-northeast-2.amazonaws.com/${name}`;
     } catch (e) {
       throw new InternalServerErrorException('Image Upload Failed');
     }
