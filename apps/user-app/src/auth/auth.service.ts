@@ -120,7 +120,8 @@ export class AuthService {
     } catch (err) {
       throw new UnauthorizedException('no Auth Included');
     }
-    if (noBearer) throw new jwt.JsonWebTokenError('Wrong Token Type');
+    if (noBearer)
+      throw new BadRequestException('Wrong Token Type, Bearer Needed.');
     return tokenString.split('Bearer ')[1];
   }
 }
