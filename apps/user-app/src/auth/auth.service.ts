@@ -104,8 +104,8 @@ export class AuthService {
           err.message || 'Expired, login back required',
         );
       throw isInstance(err, jwt.JsonWebTokenError)
-        ? new BadRequestException(err.message || 'Wrong Token Value')
-        : err;
+        ? new BadRequestException('Wrong Token Value')
+        : new BadRequestException(err.message);
     }
   }
 
